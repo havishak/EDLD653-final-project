@@ -1,0 +1,149 @@
+---
+title: "Final project - Data Cleaning"
+author: ""
+date: "5/6/22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      error = FALSE,
+                      warning = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(rio)
+library(janitor)
+library(stringr)
+
+#importing meta-data
+ff_meta <- import(here("data","FFMetadata_v09.csv"))%>%
+   clean_names() %>%
+  as_tibble()
+```
+
+The actual data file has more than 17000 variables. We'll use the meta-data file to select the variable of interest, and use the `ff_vars` vector to subset the actual data file.
+
+For this project, we're interested in:
+
+1. Demographic characteristics 
+a. self-reported race/ethnicity at age 15
+b. mother's report on gender at birth
+
+2. Scales:
+a. Self-Description Questionnaire (SDQ) - Information on internalizing and externalizing behaviors at age 9
+b. Delinquent Behavior Scale at age 9 and age 15
+c. Aggravation in parenting - collected for Baseline all years
+
+3. Outcomes from questionnaire
+a. If child suspended/expelled, and number of times suspended or expelled at age 9 (parent report) and at age 15 (parent and child)
+
+
+```{r}
+#select scales
+scales <- c("Aggravation in Parents", 
+            "Self-Description Questionnaire (SDQ)",
+            "Delinquent Behavior") 
+
+ff_meta_subset <- ff_meta %>% 
+                #demographic characteristics - race/ethnicity
+                filter((topics == "Demographics" &
+                        str_detect(varlab,"self-description of race/ethnicity"))|
+                        #gender
+                        (subtopics == "sex/gender" &
+                        str_detect(varlab, "Focal baby's gender"))|
+                        #scales
+                        scale %in% scales|
+                        #outcomes from questionnaire
+                        (source == "questionnaire" & 
+                        subtopics == "student experiences" &
+                        str_detect(varlab,"suspen")))%>% 
+                #only include relevant columns
+                select(new_name, varlab, topics, subtopics, 
+                       type, scale, source, respondent, 
+                       survey, wave,
+                       starts_with("label"))
+
+```
+
+Our meta-data subset includes the following information:
+
+a. variable names corresponding to columns in the actual data set
+b. variable labels - actual question statement
+c. topics
+d. subtopic
+e. type - types of variable (continuous, categorical, etc.)
+f. scale - which scale was used. "" means no scale was used
+g. source 
+h. respondent
+i. survey
+j. wave - year and wave data was collected
+k. starts_with("label") - description of possible responses to questions and how they're coded.
+
+
+```{r, eval = FALSE}
+#use variable names to subset the dataset
+
+ff_vars <- ff_meta_subset$new_name
+
+ff <- import(here("data","FF_allwaves_2020v2_SPSS.sav")) %>% 
+    clean_names()
+
+ff_sub <- ff %>% 
+    select(idnum, #identifier 
+           all_of(ff_vars)) %>%  #our selected variables
+    as_tibble()
+
+```
+
+```{r}
+#let's save the subsetted df so that we don't have to clean each time
+
+#export(ff_sub, here("data","ff_sub.Rda"))
+
+ff_sub <- import(here("data","ff_sub.Rda"))
+```
+
+The variables (columns) have the following attributes:
+
+a. label: variable label
+b. names: possible responses for a question
+
+```{r}
+#let's join the meta data to the subset so that we know which scale it comes from
+
+ff_sub_long <- ff_sub %>% 
+    pivot_longer(
+        cols = -1,
+        names_to = "response"
+    ) %>% 
+    left_join(ff_meta, by = c("response" = "new_name"))
+
+```
+
+
+```{r}
+#Let's make some example plots
+
+plots <- ff_sub_long %>% 
+    filter(scale == "Self-Description Questionnaire (SDQ)" & value >=0) %>%
+    nest_by(varlab) %>% 
+    summarise(
+        plot = list(
+            ggplot(data, aes(x = as.factor(value)))+
+            geom_bar()+
+            labs(
+                title = glue::glue("{varlab}")
+            )   
+        )
+    )
+
+walk(plots$plot,print)
+
+
+
+```
+
