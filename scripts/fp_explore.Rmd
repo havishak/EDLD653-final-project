@@ -1,6 +1,6 @@
 ---
 title: "Final project - Data Cleaning"
-author: ""
+author: "Havi, Rebecca, Ksenia, Amy"
 date: "5/6/22"
 output: html_document
 ---
@@ -19,27 +19,41 @@ library(rio)
 library(janitor)
 library(stringr)
 
-#importing meta-data
-ff_meta <- import(here("data","FFMetadata_v09.csv"))%>%
-   clean_names() %>%
-  as_tibble()
 ```
 
-The actual data file has more than 17000 variables. We'll use the meta-data file to select the variable of interest, and use the `ff_vars` vector to subset the actual data file.
+We are using data from the Fragile Families & Child Well-Being Study (Princeton) for this project. The study is longitudinal, with data collected from child participants, their parents/guardians, and their teachers at multiple time points (e.g., Baseline, Year 9, Year 15). More information about the study can be found at the following links: 
+
+- https://fragilefamilies.princeton.edu/data-and-documentation/public-data-documentation 
+- https://fragilefamilies.princeton.edu/documentation
+
+Our research questions are: 
+
+1. What is the association between internalizing or externalizing behaviors at age 9 and rates of delinquent behaviors at age 15? 
+2. Which delinquent behaviors are most frequent for internalizing vs. externalizing behaviors? 
+3. Do race/ethnicity, gender, or other demographic characteristics impact this association?
+
+The complete data file has more than 17,000 variables. We'll use the meta-data file, which is like a data dictionary (lists all variables and associated information, such as when it was collected and an explanation of what the variable is), to select the variables of interest, and use the `ff_vars` vector to subset the actual data file.
 
 For this project, we're interested in:
 
-1. Demographic characteristics 
-a. self-reported race/ethnicity at age 15
-b. mother's report on gender at birth
+1. Demographic characteristics of participants:
+    a. Self-reported race/ethnicity at age 15
+    b. Mother's report of gender at birth
 
 2. Scales:
-a. Self-Description Questionnaire (SDQ) - Information on internalizing and externalizing behaviors at age 9
-b. Delinquent Behavior Scale at age 9 and age 15
-c. Aggravation in parenting - collected for Baseline all years
+    a. Self-Description Questionnaire (SDQ) - Information on internalizing and externalizing behaviors at age 9
+    b. Delinquent Behavior Scale at age 9 and age 15
+    c. Aggravation in parenting - collected for Baseline all years
 
-3. Outcomes from questionnaire
-a. If child suspended/expelled, and number of times suspended or expelled at age 9 (parent report) and at age 15 (parent and child)
+3. Outcomes from questionnaire:
+    a. Whether or not the child was suspended/expelled from school at age 9 and 15 (parent and child), and number of times suspended or expelled at age 15 (parent and child)
+
+```{r}
+#importing meta-data
+ff_meta <- import(here("data","FFMetadata_v09.csv")) %>%
+    clean_names() %>%
+    as_tibble()
+```
 
 
 ```{r}
@@ -51,22 +65,29 @@ scales <- c("Aggravation in Parents",
 ff_meta_subset <- ff_meta %>% 
                 #demographic characteristics - race/ethnicity
                 filter((topics == "Demographics" &
-                        str_detect(varlab,"self-description of race/ethnicity"))|
+                        str_detect(varlab,
+                                   "self-description of race/ethnicity")) |
                         #gender
                         (subtopics == "sex/gender" &
-                        str_detect(varlab, "Focal baby's gender"))|
+                        str_detect(varlab, "Focal baby's gender")) |
                         #scales
                         scale %in% scales|
                         #outcomes from questionnaire
                         (source == "questionnaire" & 
                         subtopics == "student experiences" &
-                        str_detect(varlab,"suspen")))%>% 
+                        str_detect(varlab,"suspen"))) %>% 
                 #only include relevant columns
-                select(new_name, varlab, topics, subtopics, 
-                       type, scale, source, respondent, 
-                       survey, wave,
+                select(new_name, 
+                       varlab, 
+                       topics, 
+                       subtopics, 
+                       type, 
+                       scale, 
+                       source, 
+                       respondent, 
+                       survey, 
+                       wave,
                        starts_with("label"))
-
 ```
 
 Our meta-data subset includes the following information:
@@ -83,7 +104,6 @@ i. survey
 j. wave - year and wave data was collected
 k. starts_with("label") - description of possible responses to questions and how they're coded.
 
-
 ```{r, eval = FALSE}
 #use variable names to subset the dataset
 
@@ -96,7 +116,6 @@ ff_sub <- ff %>%
     select(idnum, #identifier 
            all_of(ff_vars)) %>%  #our selected variables
     as_tibble()
-
 ```
 
 ```{r}
@@ -104,7 +123,8 @@ ff_sub <- ff %>%
 
 #export(ff_sub, here("data","ff_sub.Rda"))
 
-ff_sub <- import(here("data","ff_sub.Rda"))
+ff_sub_orig <- import(here("data","ff_sub.Rda"))
+#AW: I appended "_orig" here to retain an original version of the df
 ```
 
 The variables (columns) have the following attributes:
@@ -115,54 +135,100 @@ b. names: possible responses for a question
 ```{r}
 #let's join the meta data to the subset so that we know which scale it comes from
 
-ff_sub_long <- ff_sub %>% 
+ff_sub_long <- ff_sub_orig %>% 
     pivot_longer(
         cols = -1,
         names_to = "response"
     ) %>% 
     left_join(ff_meta, by = c("response" = "new_name"))
-
 ```
-
 
 ```{r}
 #Let's make some example plots
 
 plots <- ff_sub_long %>% 
-    filter(scale == "Self-Description Questionnaire (SDQ)" & value >=0) %>%
+    filter(scale == "Self-Description Questionnaire (SDQ)" & value >= 0) %>%
     nest_by(varlab) %>% 
     summarise(
         plot = list(
-            ggplot(data, aes(x = as.factor(value)))+
-            geom_bar()+
+            ggplot(data, aes(x = as.factor(value))) +
+            geom_bar() +
             labs(
                 title = glue::glue("{varlab}")
             )   
         )
     )
 
-walk(plots$plot,print)
-
-
-
+walk(plots$plot, print)
 ```
-## Calculate subscores
+
+## Calculate scores for the internalizing and externalizing subscales
 ```{r calculate-subscores}
-
 #Calculates subscores for internalizing and externalizing behaviors at age 9
-ff_sub <- ff_sub %>% 
-mutate(int_scores = (k5g2a + k5g2c + k5g2e + k5g2g + k5g2i + k5g2j + k5g2k + k5g2l)/8, ext_scores = (k5g2b + k5g2d + k5g2f + k5g2h + k5g2m + k5g2n)/6) %>%
-filter(int_scores >=0, ext_scores >= 0)
+ff_sub <- ff_sub_orig %>% 
+    mutate(int_scores = (k5g2a + k5g2c + k5g2e + k5g2g + 
+                             k5g2i + k5g2j + k5g2k + k5g2l) / 8, 
+           ext_scores = (k5g2b + k5g2d + k5g2f + 
+                             k5g2h + k5g2m + k5g2n) / 6) %>%
+    filter(int_scores >= 0, ext_scores >= 0) 
 
+#AW: I think that scores lower than 0 should be filtered out first. Filtering out after calculating the mean will make some participant's scores appear lower than they should be because any negative-coded values are being subtracted from other responses. E.g., let's say a participant had -3, -3, 3, 3, 3, 3. The negative responses are getting subtracted from the sum before dividing. After re-reading the instructions for calculating the subscale scores, I don't think the participant should get a subscale score if they have any negatively coded items. "When a participant responds with don’t know, refuse, or missing, to any item on a given scale, their scale score will be missing..."
 
-#Subsetting: select int/ext scores, sex, ethnicity, delinquent behaviors, expulsions/suspensions and filter by valid scores (i.e., less than 0)
+#AW: I was thinking something like the code below could work but realized I don't think we want to filter/subset this way, unless we create separate dataframes for participants with externalizing subscale scores and participants with internalizing subscale scores. There will be some kids with int. scores but not ext. scores and vice versa.
+
+ff_sub2 <- ff_sub_orig %>%
+    filter(k5g2b >= 0 &
+           k5g2d >= 0 &
+           k5g2f >= 0 &
+           k5g2h >= 0 &
+           k5g2m >= 0 &
+           k5g2n >= 0
+           ) %>%
+    rowwise() %>%
+    mutate(sdq_externalizing = mean(c(k5g2b,
+                                      k5g2d,
+                                      k5g2f,
+                                      k5g2h,
+                                      k5g2m,
+                                      k5g2n)
+                                    )
+           ) %>% 
+    ungroup()
+
+#AW: I replicated the externalizing x suspensions/expulsions plot using the # of times expelled/suspended as reported by parents (p6c22), filtering to remove negative values first
+p <- ff_sub2 %>% 
+    filter(p6c22 >= 0) %>% 
+    ggplot(aes(sdq_externalizing, p6c22)) 
+
+p + geom_smooth(method = "lm",
+                    color = "magenta") +
+    geom_smooth()
+```
+
+## Subsetting: select int/ext scores, sex, ethnicity, delinquent behaviors, expulsions/suspensions and filter by valid scores (i.e., less than 0)
+
+```{r}
 ff_sub_lm <- ff_sub %>% 
     rowwise() %>% 
-    select(idnum, starts_with("k6d6"), starts_with("k5f1"), int_scores, ext_scores, cm1bsex, ck6ethrace, p5l12g, p6c21) %>% 
-    filter(rowSums(across(where(is.numeric)))>=0 & ck6ethrace >=0 & p5l12g >=0 & p6c21 >=0) %>% 
+    select(idnum, 
+           starts_with("k6d6"), 
+           starts_with("k5f1"), 
+           int_scores, 
+           ext_scores, 
+           cm1bsex, 
+           ck6ethrace, 
+           p5l12g, 
+           p6c22) %>% #AW: p6c21 is a binary yes/no variable (C21. Youth ever been suspended/expelled?). I think we want p6c22 (# times reported by parent) or k6b30 (# times reported by student) instead. I changed this and subsequent instances to p6c22
+    filter(rowSums(across(where(is.numeric))) >= 0 & 
+               ck6ethrace >= 0 & 
+               p5l12g >= 0 & 
+               p6c22 >= 0) %>% 
     mutate(del_beh_9 = sum(c_across(starts_with("k5f1"))),
-    del_beh_15 = sum(c_across(starts_with("k6d6"))))
+           del_beh_15 = sum(c_across(starts_with("k6d6"))))
+
 ```
+
+
 ## Function: calculate mean across variables
 ```{r function-mean-null}
 means_df <- function(df, ...) {
@@ -173,15 +239,20 @@ means_df <- function(df, ...) {
 }
 
 means_df(ff_sub)
-
 ```
+
 ## Linear Model functions
 ```{r lm-models}
 ff_sub_lm$idnum <- as.numeric(ff_sub_lm$idnum)
+
 ff_sub_lm$ck6ethrace <- as.numeric(ff_sub_lm$ck6ethrace)
 
 lm_mods <- function (vardep, varindep1, varindep2, varindep3, DATA) {
-  summary(lm(paste(vardep, "~", varindep1, "+", varindep2, "+", varindep3), data = DATA))
+  summary(lm(paste(vardep, "~", 
+                   varindep1, "+", 
+                   varindep2, "+", 
+                   varindep3), 
+             data = DATA))
   }
 
 lm_mods("del_beh_15", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
@@ -191,9 +262,8 @@ lm_mods("del_beh_9", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
 
 lm_mods("p5l12g", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
 lm_mods("p5l12g", "int_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
-lm_mods("p6c21", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
-lm_mods("p6c21", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
-
+lm_mods("p6c22", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
+lm_mods("p6c22", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
 
 mod_db_int_15 <- ff_sub_lm %>%
     group_by(idnum) %>%
@@ -245,7 +315,7 @@ mod_expulsion15_ext <- ff_sub_lm %>%
     nest() %>%
     mutate(
         model = map(
-            data, ~lm(p6c21 ~ ext_scores + cm1bsex + ck6ethrace, data = .x)
+            data, ~lm(p6c22 ~ ext_scores + cm1bsex + ck6ethrace, data = .x)
         )
     )
 
@@ -263,7 +333,7 @@ mod_expulsion15_int <- ff_sub_lm %>%
     nest() %>%
     mutate(
         model = map(
-            data, ~lm(p6c21 ~ int_scores + cm1bsex + ck6ethrace, data = .x)
+            data, ~lm(p6c22 ~ int_scores + cm1bsex + ck6ethrace, data = .x)
         )
     )
 
@@ -301,8 +371,10 @@ mods <- function(data, x, y, points = FALSE, ...) {
     p + geom_smooth(method = "lm",
                     color = "magenta", 
                     ...) +
-        geom_smooth(...)
+        geom_smooth(...) 
 }
+
+#AW: Do we want two fitted lines on the graphs? If so, it might be helpful to include a short note about the purpose of the two lines. 
 ```
 
 ## Internalizing year 9 x delinquency behaviors in year 15 
@@ -313,6 +385,7 @@ mods(ff_sub_lm, int_scores, del_beh_15) +
          x = "Internalizing behavior score",
          y = "Delinquency behaviors")
 ```
+
 ## Externalizing behaviors year 9 x delinquency behaviors in year 15
 
 ```{r lm-model-ext-15}
@@ -322,6 +395,7 @@ mods(ff_sub_lm, ext_scores, del_beh_15) +
          y = "Delinquency behaviors")
 
 ```
+
 ## Internalizing year 9 x delinquency behaviors in year 15 
 
 ```{r lm-model-int-9}
@@ -330,6 +404,7 @@ mods(ff_sub_lm, int_scores, del_beh_9) +
          x = "Internalizing behavior score",
          y = "Delinquency behaviors")
 ```
+
 ## Externalizing behaviors year 9 x delinquency behaviors in year 15
 
 ```{r lm-model-ext-9}
@@ -339,6 +414,7 @@ mods(ff_sub_lm, ext_scores, del_beh_9) +
          y = "Delinquency behaviors")
 
 ```
+
 ## Internalizing year 9 x suspensions/expulsions in year 9
 
 ```{r lm-model-int-exp-15}
@@ -346,7 +422,10 @@ mods(ff_sub_lm, int_scores, p5l12g) +
     labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 9",
          x = "Internalizing behavior score",
          y = "suspensions/expulsions")
+
+#AW: p5l12g is a binary yes/no variable. It looks like the # of times the participant was suspended/expelled wasn't collected in Year 9, just a yes/no whether they were or were not. 
 ```
+
 ## Externalizing behaviors year 9 x suspensions/expulsions in year 9
 
 ```{r lm-model-ext-exp-15}
@@ -355,21 +434,67 @@ mods(ff_sub_lm, ext_scores, p5l12g) +
          x = "Externalizing behavior score",
          y = "suspensions/expulsions")
 
+#AW: p5l12g is a binary yes/no variable. It looks like the # of times the participant was suspended/expelled wasn't collected in Year 9, just a yes/no whether they were or were not. 
 ```
-## Internalizing year 9 x duspensions/expulsions in year 15 
+
+## Internalizing year 9 x suspensions/expulsions in year 15 
 
 ```{r lm-model-int-exp-9}
-mods(ff_sub_lm, int_scores, p6c21) +
+mods(ff_sub_lm, int_scores, p6c22) +
     labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 15",
          x = "Internalizing behavior score",
          y = "suspensions/expulsions")
 ```
-## Externalizing behaviors year 9 x uspensions/expulsions in year 15
+
+## Externalizing behaviors year 9 x suspensions/expulsions in year 15
 
 ```{r lm-model-ext-exp-9}
-mods(ff_sub_lm, ext_scores, p6c21) +
+mods(ff_sub_lm, ext_scores, p6c22) +
     labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 15",
          x = "Externalizing behavior score",
          y = "suspensions/expulsions")
-
 ```
+
+## purrr::nest %>% mutate() 
+
+*This section is still in progress (Amy)*
+
+cm1bsex = gender of participant, as reported by mother during baseline data collection
+
+ck6ethrace = race/ethnicity of participant, self-reported during Wave 6 / Year 15
+
+- 1	= White only, non-hispanic
+- 2	= Black/Af. American only, non-hispanic	
+- 3	= Hispanic/Latino	
+- 4	= Other only, non-hispanic
+- 5	= Multi-racial, non-hispanic
+- Negative values = don't know, missing, refused, and not in wave
+
+p6c22 = Number of times youth has been suspended/expelled past two years as reported by primary caregiver in Wave 6/Year 15
+
+
+```{r}
+# First step: filter out negatively coded responses for race/ethnicity and # of suspensions/expulsions and recode race/eth
+ethrace <- ff_sub %>%
+    filter(ck6ethrace > 0,
+           p6c22 >= 0) %>% 
+    mutate(ck6ethrace = recode(ck6ethrace, 
+                               "1" = "White",
+                               "2" = "Black",
+                               "3" = "Hispanic/Latino",
+                               "4" = "Other", 
+                               "5" = "Multiracial"))
+
+# Beginning to play around with nest() %>% mutate. Here, I calculated the avg. suspensions/expulsions reported by primary caregiver for Year 15 for each race/eth category. 
+by_ethrace <- ethrace %>% 
+        group_by(ck6ethrace) %>%
+    nest() %>% 
+    mutate(
+        avg_sus_exp = map_dbl(data, ~mean(.x$p6c22)),
+    ) 
+
+by_ethrace %>% 
+    ggplot(aes(y = avg_sus_exp, x = ck6ethrace)) +
+    geom_col()
+```
+
