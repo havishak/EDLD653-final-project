@@ -40,3 +40,6 @@ vignettes/*.pdf
 
 #Mac file
 .DS_Store
+
+#complete data file
+FF_allwaves_2020v2_SPSS.sav
