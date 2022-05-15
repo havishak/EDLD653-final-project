@@ -497,4 +497,81 @@ by_ethrace %>%
     ggplot(aes(y = avg_sus_exp, x = ck6ethrace)) +
     geom_col()
 ```
+#Parallell interations for scatterplots
+```{r}
+ff_sub_lm1 <- ff_sub_lm %>% 
+  select( int_scores, ext_scores, cm1bsex, ck6ethrace, del_beh_9, del_beh_15, p5l12g, p6c21)
+ff_sub_lm1$cm1bsex <- factor(ff_sub_lm1$cm1bsex, labels = c("male","female"))
+ff_sub_lm1$ck6ethrace <- as.factor(ff_sub_lm1$ck6ethrace)
+ff_sub_lm1$ck6ethrace <- recode (ff_sub_lm1$ck6ethrace, "1" = "white",
+                                                      "2" =  "black",
+                                                       "3" = "hispanic",
+                                                       "4" = "other",
+                                 "5" = "multi-racial")
 
+#I tried to use the following code with *map* but could not make it work
+
+#ff_sub_lm <- map(ff_sub_lm, ~{
+ # .x %>% 
+   # mutate(cm1bsex = factor(cm1bsex, labels = c("male","female")),
+         #  ck6ethrace = factor(ck6ethrace, labels = c("white",
+                                                       # "black",
+                                                      #  "hispanic",
+                                                        #"other",
+                                                       # "multi-racial"))) 
+#})
+
+#Function for a scatterplot with a fitted regression line 
+scatter1 <- function(df, DV, IV, group) {
+ var1 <- deparse(substitute(DV))
+ var2 <- deparse(substitute(IV))
+ 
+ p = df %>% 
+   ggplot() +
+  geom_point(aes(x = IV, y = DV), color = "gray50", stroke = 0, alpha = .6) +
+  geom_smooth(method = lm, se = FALSE, 
+              aes(x = IV, y = DV, color = group)) +
+  scale_y_continuous(expand = c(0,0), 
+                     breaks = c(35, 40, 45, 50))+
+  coord_cartesian(ylim = c(35, 55 )) +
+  theme_minimal(15) +
+  labs(x = print(var2),
+       y = print(var1)) +
+  theme(plot.title.position = "plot",
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank())
+ 
+  ifelse(var2 == "ff_sub_lm1$int_scores",
+        p <- p + labs(title = "Delinquent Behaviour at 15 predicted by Internalizing scores at 9"),
+ ifelse (var2 == "ff_sub_lm1$ext_scores",
+      p <- p + labs(title = "Delinquent Behaviour at 15 predicted by Externalizing scores at 9"),
+      p <- p))
+
+ p
+}
+
+
+#Del. Behaviour at 15 by Internalizing scores at 9, grouped by Race
+scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$int_scores, ff_sub_lm1$ck6ethrace)
+
+#Del. Behaviour at 15 by Internalizing scores at 9, grouped by Gender
+scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$int_scores, ff_sub_lm1$cm1bsex)
+
+#Del. Behaviour at 15 by Externalizing scores at 9, grouped by Race
+scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$ext_scores, ff_sub_lm1$ck6ethrace)
+
+#Del. Behaviour at 15 by Externalizing scores at 9, grouped by Gender
+scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$ext_scores, ff_sub_lm1$cm1bsex)
+
+
+
+#Plots for both internatlizing and externalizing behavior grouped by gender
+map(ff_sub_lm1[1:2],
+                          ~{scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, .x, ff_sub_lm1$cm1bsex)})
+
+#Plots for both internatlizing and externalizing behavior grouped by gender
+map(ff_sub_lm1[1:2],
+                          ~{scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, .x, ff_sub_lm1$ck6ethrace)})
+                          
+
+```
