@@ -19,7 +19,6 @@ library(rio)
 library(janitor)
 library(stringr)
 library(colorblindr)
-
 ```
 
 We are using data from the Fragile Families & Child Well-Being Study (Princeton) for this project. The study is longitudinal, with data collected from child participants, their parents/guardians, and their teachers at multiple time points (e.g., Baseline, Year 9, Year 15). More information about the study can be found at the following links: 
@@ -27,11 +26,13 @@ We are using data from the Fragile Families & Child Well-Being Study (Princeton)
 - https://fragilefamilies.princeton.edu/data-and-documentation/public-data-documentation 
 - https://fragilefamilies.princeton.edu/documentation
 
-Our research questions are: 
+Our original research questions were: 
 
 1. What is the association between internalizing or externalizing behaviors at age 9 and rates of delinquent behaviors at age 15? 
 2. Which delinquent behaviors are most frequent for internalizing vs. externalizing behaviors? 
 3. Do race/ethnicity, gender, or other demographic characteristics impact this association?
+
+After obtaining the dataset and beginning to work with it, we did not move forward with RQ2. In addition, we decided to explore the relationship between internalizing and externalizing behaviors at age 9 and the number of suspensions/expulsions at age 15. 
 
 The complete data file has more than 17,000 variables. We'll use the meta-data file, which is like a data dictionary (lists all variables and associated information, such as when it was collected and an explanation of what the variable is), to select the variables of interest, and use the `ff_vars` vector to subset the actual data file.
 
@@ -63,6 +64,7 @@ scales <- c("Aggravation in Parents",
             "Self-Description Questionnaire (SDQ)",
             "Delinquent Behavior") 
 
+#further narrow the meta-data file to variables of interest
 ff_meta_subset <- ff_meta %>% 
                 #demographic characteristics - race/ethnicity
                 filter((topics == "Demographics" &
@@ -125,6 +127,7 @@ ff_sub <- ff %>%
 #export(ff_sub, here("data","ff_sub.Rda"))
 
 ff_sub_orig <- import(here("data","ff_sub.Rda"))
+
 #AW: I appended "_orig" here to retain an original version of the df
 ```
 
@@ -175,7 +178,7 @@ ff_sub <- ff_sub_orig %>%
 
 #AW: I think that scores lower than 0 should be filtered out first. Filtering out after calculating the mean will make some participant's scores appear lower than they should be because any negative-coded values are being subtracted from other responses. E.g., let's say a participant had -3, -3, 3, 3, 3, 3. The negative responses are getting subtracted from the sum before dividing. After re-reading the instructions for calculating the subscale scores, I don't think the participant should get a subscale score if they have any negatively coded items. "When a participant responds with don’t know, refuse, or missing, to any item on a given scale, their scale score will be missing..."
 
-#AW: I was thinking something like the code below could work but realized I don't think we want to filter/subset this way, unless we create separate dataframes for participants with externalizing subscale scores and participants with internalizing subscale scores. There will be some kids with int. scores but not ext. scores and vice versa.
+#AW: I was thinking something like the code below could work but realized I don't think we want to filter/subset this way. There will be some kids with int. scores but not ext. scores and vice versa. We could (a) create separate dataframes for participants with externalizing subscale scores and participants with internalizing subscale scores or (b) decide we want to restrict the sample to only include participants that had valid scores for all scales. I might also be overthinking this.
 
 ff_sub2 <- ff_sub_orig %>%
     filter(k5g2b >= 0 &
@@ -197,6 +200,7 @@ ff_sub2 <- ff_sub_orig %>%
     ungroup()
 
 #AW: I replicated the externalizing x suspensions/expulsions plot using the # of times expelled/suspended as reported by parents (p6c22), filtering to remove negative values first
+
 p <- ff_sub2 %>% 
     filter(p6c22 >= 0) %>% 
     ggplot(aes(sdq_externalizing, p6c22)) 
@@ -219,13 +223,35 @@ ff_sub_lm <- ff_sub %>%
            cm1bsex, 
            ck6ethrace, 
            p5l12g, 
-           p6c22) %>% #AW: p6c21 is a binary yes/no variable (C21. Youth ever been suspended/expelled?). I think we want p6c22 (# times reported by parent) or k6b30 (# times reported by student) instead. I changed this and subsequent instances to p6c22
+           p6c22) %>% #AW: If you look at the ff_meta_subset df, p6c21 is a binary yes/no variable (C21. Youth ever been suspended/expelled?). I think we want p6c22 (# times reported by parent) or k6b30 (# times reported by student) instead. I changed this and subsequent instances to p6c22
     filter(rowSums(across(where(is.numeric))) >= 0 & 
                ck6ethrace >= 0 & 
                p5l12g >= 0 & 
                p6c22 >= 0) %>% 
-    mutate(del_beh_9 = sum(c_across(starts_with("k5f1"))),
-           del_beh_15 = sum(c_across(starts_with("k6d6"))))
+    mutate(del_beh_9 = sum(c_across(starts_with("k5f1"))), # binary yes/no
+           del_beh_15 = sum(c_across(starts_with("k6d6"))),#AW: I think this should be k6d61 (responses 1-4, with 4 being highest - see ff_meta_subset file) because the k6d62 variables are from the peer delinquency portion of the scale and have different responses (1, 2, 3), where lower scores correspond to greater delinquent behaviors (1 = often, 3 = never). I'm not sure negative responses are getting filtered out since there's a -8 in the resulting column 
+           del_beh_15_self_rep = sum(c_across(starts_with("k6d61")))) #I added a column here using k6d61 for comparison
+
+#trying out filtering zeroes out first and then joining with ff_sub_lm to compare    
+ff_sub_lm2 <- ff_sub %>% 
+    filter(k6d61a > 0 &
+           k6d61b > 0 &
+           k6d61c > 0 & 
+           k6d61d > 0 &
+           k6d61e > 0 &
+           k6d61f > 0 & 
+           k6d61g > 0 & 
+           k6d61h > 0 &
+           k6d61i > 0 &
+           k6d61j > 0 &
+           k6d61k > 0 &
+           k6d61l > 0 &
+           k6d61m > 0) %>% 
+    rowwise() %>% 
+    mutate(del_beh_15_self_rep2 = sum(c_across(starts_with("k6d61")))) %>%
+    select(idnum, del_beh_15_self_rep2)
+
+ff_sub_lm3 <- left_join(ff_sub_lm, ff_sub_lm2)
 
 ```
 
@@ -498,12 +524,18 @@ by_ethrace %>%
     ggplot(aes(y = avg_sus_exp, x = ck6ethrace)) +
     geom_col()
 ```
-#Parallell interations for scatterplots
+
+## Parallel interations for scatterplots
+
 ```{r}
 ff_sub_lm1 <- ff_sub_lm %>% 
-  select( int_scores, ext_scores, cm1bsex, ck6ethrace, del_beh_9, del_beh_15, p5l12g, p6c21)
+  select( int_scores, ext_scores, cm1bsex, ck6ethrace, 
+          del_beh_9, del_beh_15, p5l12g, p6c22)
+
 ff_sub_lm1$cm1bsex <- factor(ff_sub_lm1$cm1bsex, labels = c("male","female"))
+
 ff_sub_lm1$ck6ethrace <- as.factor(ff_sub_lm1$ck6ethrace)
+
 ff_sub_lm1$ck6ethrace <- recode (ff_sub_lm1$ck6ethrace, "1" = "white",
                                                         "2" =  "black",
                                                         "3" = "hispanic",
@@ -533,7 +565,7 @@ scatter1 <- function(df, DV, IV, group) {
    geom_smooth(method = lm, se = FALSE, 
                aes(x = IV, y = DV, color = group)) +
    scale_y_continuous(expand = c(0,0), 
-                     breaks = c(35, 40, 45, 50))+
+                     breaks = c(35, 40, 45, 50)) +
   coord_cartesian(ylim = c(35, 55 )) +
   theme_minimal(15) +
   labs(x = print(var2),
@@ -564,8 +596,6 @@ scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$ext_scores, ff_sub_lm1$ck
 #Del. Behavior at 15 by Externalizing scores at 9, grouped by Gender
 scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$ext_scores, ff_sub_lm1$cm1bsex)
 
-
-
 #Plots for both internalizing and externalizing behavior grouped by gender
 map(ff_sub_lm1[1:2],
                           ~{scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, .x, ff_sub_lm1$cm1bsex)})
@@ -579,11 +609,12 @@ map(ff_sub_lm1[1:2],
 scatter2 <- function(df, group) {
  p = df %>% 
    ggplot() +
-   geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50", stroke = 0, alpha = .6) +
+   geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50", 
+              stroke = 0, alpha = .6) +
    geom_smooth(method = lm, se = FALSE, 
                aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
    scale_y_continuous(expand = c(0,0), 
-                     breaks = c(35, 40, 45, 50))+
+                     breaks = c(35, 40, 45, 50)) +
   coord_cartesian(ylim = c(35, 55 )) +
   theme_minimal(15) +
   scale_color_OkabeIto(name = "Gender") +
