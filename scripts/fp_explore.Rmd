@@ -1,8 +1,11 @@
 ---
-title: "Final project - Data Cleaning"
+title: "Final Project Draft Script"
 author: "Havi, Rebecca, Ksenia, Amy"
-date: "5/6/22"
-output: html_document
+date: "Due 5/16/22"
+output:
+  html_document:
+    toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
@@ -19,6 +22,7 @@ library(rio)
 library(janitor)
 library(stringr)
 library(colorblindr)
+library(glue)
 ```
 
 We are using data from the Fragile Families & Child Well-Being Study (Princeton) for this project. The study is longitudinal, with data collected from child participants, their parents/guardians, and their teachers at multiple time points (e.g., Baseline, Year 9, Year 15). More information about the study can be found at the following links: 
@@ -50,6 +54,7 @@ For this project, we're interested in:
 3. Outcomes from questionnaire:
     a. Whether or not the child was suspended/expelled from school at age 9 and 15 (parent and child), and number of times suspended or expelled at age 15 (parent and child)
 
+## Loading the Meta-Data and Subsetting
 ```{r}
 #importing meta-data
 ff_meta <- import(here("data","FFMetadata_v09.csv")) %>%
@@ -107,18 +112,22 @@ i. survey
 j. wave - year and wave data was collected
 k. starts_with("label") - description of possible responses to questions and how they're coded.
 
+## Loading the Full Dataset and Narrowing to Variables of Interest Using Meta-Data Subset
+
 ```{r, eval = FALSE}
 #use variable names to subset the dataset
 
 ff_vars <- ff_meta_subset$new_name
 
-ff <- import(here("data","FF_allwaves_2020v2_SPSS.sav")) %>% 
-    clean_names()
+#Import the full, original dataset. Note this will not work for peer reviewers. We are only sharing the narrowed dataset on github. 
 
-ff_sub <- ff %>% 
-    select(idnum, #identifier 
-           all_of(ff_vars)) %>%  #our selected variables
-    as_tibble()
+#ff <- import(here("data","FF_allwaves_2020v2_SPSS.sav")) %>% 
+#    clean_names()
+
+# ff_sub <- ff %>% 
+#     select(idnum, #identifier 
+#            all_of(ff_vars)) %>%  #our selected variables
+#     as_tibble()
 ```
 
 ```{r}
@@ -146,6 +155,8 @@ ff_sub_long <- ff_sub_orig %>%
     ) %>% 
     left_join(ff_meta, by = c("response" = "new_name"))
 ```
+
+## Plots of Self-Description Questionnnaire Responses Using `nest_by()`
 
 ```{r}
 #Let's make some example plots
@@ -482,11 +493,14 @@ mods(ff_sub_lm, ext_scores, p6c22) +
          y = "suspensions/expulsions")
 ```
 
-## purrr::nest %>% mutate() 
+## Mean Suspensions/Expulsions and Distributions of Subscale Scores and Suspensions/Explusions Using purrr::nest %>% mutate() 
 
-*This section is still in progress (Amy)*
+*This section is still in progress*
 
 cm1bsex = gender of participant, as reported by mother during baseline data collection
+
+- 1 = male
+- 2 = female
 
 ck6ethrace = race/ethnicity of participant, self-reported during Wave 6 / Year 15
 
@@ -499,12 +513,9 @@ ck6ethrace = race/ethnicity of participant, self-reported during Wave 6 / Year 1
 
 p6c22 = Number of times youth has been suspended/expelled past two years as reported by primary caregiver in Wave 6/Year 15
 
-
 ```{r}
-# First step: filter out negatively coded responses for race/ethnicity and # of suspensions/expulsions and recode race/eth
-ethrace <- ff_sub %>%
-    filter(ck6ethrace > 0,
-           p6c22 >= 0) %>% 
+# First step - recode race/eth
+ethrace <- ff_sub_lm %>%
     mutate(ck6ethrace = recode(ck6ethrace, 
                                "1" = "White",
                                "2" = "Black",
@@ -512,9 +523,10 @@ ethrace <- ff_sub %>%
                                "4" = "Other", 
                                "5" = "Multiracial"))
 
-# Beginning to play around with nest() %>% mutate. Here, I calculated the avg. suspensions/expulsions reported by primary caregiver for Year 15 for each race/eth category. 
+# Beginning to play around with nest() %>% mutate. Here, I calculated the avg. suspensions/expulsions reported by primary caregiver for Year 15 for each race/eth category and generated a bar chart w/ displaying the mean suspensions/expulsion by race/ethnicity subgroup
+
 by_ethrace <- ethrace %>% 
-        group_by(ck6ethrace) %>%
+    group_by(ck6ethrace) %>%
     nest() %>% 
     mutate(
         avg_sus_exp = map_dbl(data, ~mean(.x$p6c22)),
@@ -523,6 +535,120 @@ by_ethrace <- ethrace %>%
 by_ethrace %>% 
     ggplot(aes(y = avg_sus_exp, x = ck6ethrace)) +
     geom_col()
+```
+
+I then used `mutate()` with the nested dataframe and `map()` to generate distributions for the following continuous variable by race/ethnicity:
+
+- internalizing behavior subscale scores of participants at age 9 
+- externalizing behavior subscale scores of participants at age 9, 
+- delinquent behavior subscale scores at age 15, and 
+- number of suspensions and expulsions at age 15 - all by race/ethnicity. 
+
+These are definitely **rough drafts**. If we include these in our final product, my to-do list would include: 
+
+- `theme_minimal()`
+- consistent x- and y-axis scaling, breaks, and clean labels
+- use of color and alpha
+- minimal plot elements, such as removing axis grid lines
+- get rid of the expansions above the x- and y-axis
+
+I'd also like to replicate these for gender.
+
+```{r}
+# Distributions of internalizing subscale scores at age 9 by race/ethnicity 
+
+by_ethrace <- by_ethrace %>% 
+    mutate(
+      distributions_int_scores = map(
+          data, ~{
+          ggplot(.x, aes(int_scores)) +
+                geom_bar() + 
+                labs(
+          title = "Distribution of Age 9 Internalizing Behavior Scores",
+          subtitle = glue("{ck6ethrace} Participants"),
+          x = "Internalizing Behavior Subscale Score",
+          y = ""
+          )
+      }
+    )
+  )
+    
+#by_ethrace$distributions_int_scores[[1]]
+
+walk(by_ethrace$distributions_int_scores[1:5], print)
+```
+
+```{r}
+# Distributions of externalizing subscale scores at age 9 by race/ethnicity 
+
+by_ethrace <- by_ethrace %>% 
+    mutate(
+      distributions_ext_scores = map(
+          data, ~{
+          ggplot(.x, aes(ext_scores)) +
+                geom_bar() + 
+                labs(
+          title = "Distribution of Age 9 Externalizing Behavior Scores",
+          subtitle = glue("{ck6ethrace} Participants"),
+          x = "Externalizing Behavior Subscale Score",
+          y = ""
+          )
+      }
+    )
+  )
+    
+#by_ethrace$distributions_ext_scores[[1]]
+
+walk(by_ethrace$distributions_ext_scores[1:5], print)
+```
+
+```{r}
+#Distributions of delinquent behavior subscale scores reported at age 15 by race/ethnicity subgroup
+
+by_ethrace <- by_ethrace %>% 
+    mutate(
+      distributions_del_beh_15 = map(
+          data, ~{
+          ggplot(.x, aes(del_beh_15_self_rep)) +
+                geom_bar() + 
+                labs(
+          title = "Distribution of Age 15 Delinquent Behavior Scores",
+          subtitle = glue("{ck6ethrace} Participants"),
+          x = "Delinquent Behavior Total Score",
+          y = ""
+          )
+      }
+    )
+  )
+    
+#by_ethrace$distributions_del_beh_15[[1]]
+
+walk(by_ethrace$distributions_del_beh_15[1:5], print)
+```
+
+
+```{r}
+#Distributions of reported suspensions and expulsions reported at age 15. 
+
+by_ethrace <- by_ethrace %>% 
+    mutate(
+      distributions_susp_exp_15 = map(
+          data, ~{
+          ggplot(.x, aes(p6c22)) +
+                geom_bar() + 
+                labs(
+          title = "Distribution of Suspensions & Explusions at Age 15",
+          subtitle = glue("{ck6ethrace} Participants"),
+          x = "Reported Suspensions and Explusions",
+          y = ""
+          )
+      }
+    )
+  )
+    
+#by_ethrace$distributions_susp_exp_15[[1]]
+
+walk(by_ethrace$distributions_susp_exp_15[1:5], print)
 ```
 
 ## Parallel interations for scatterplots
