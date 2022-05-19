@@ -87,15 +87,14 @@ ff_meta_subset <- ff_meta %>%
                 #only include relevant columns
                 select(new_name, 
                        varlab, 
-                       topics, 
-                       subtopics, 
+                       # topics, 
+                       # subtopics, 
                        type, 
                        scale, 
-                       source, 
+                     #  source, 
                        respondent, 
-                       survey, 
-                       wave,
-                       starts_with("label"))
+                     #  survey, 
+                       wave)
 ```
 
 Our meta-data subset includes the following information:
@@ -106,11 +105,8 @@ c. topics
 d. subtopic
 e. type - types of variable (continuous, categorical, etc.)
 f. scale - which scale was used. "" means no scale was used
-g. source 
-h. respondent
-i. survey
-j. wave - year and wave data was collected
-k. starts_with("label") - description of possible responses to questions and how they're coded.
+g. respondent
+h. wave - year and wave data was collected
 
 ## Loading the Full Dataset and Narrowing to Variables of Interest Using Meta-Data Subset
 
@@ -135,46 +131,147 @@ ff_vars <- ff_meta_subset$new_name
 
 #export(ff_sub, here("data","ff_sub.Rda"))
 
-ff_sub_orig <- import(here("data","ff_sub.Rda"))
+ff_sub_orig <- import(here("data","ff_sub.Rda")) 
 
 #AW: I appended "_orig" here to retain an original version of the df
 ```
 
 The variables (columns) have the following attributes:
 
-a. label: variable label
-b. names: possible responses for a question
+a. label: question from the survey
+b. labels: possible responses for a question
+
+I want to add the following attributes from the meta data
+a. scale 
+b. wave 
+c. respondent 
+
+```{r}
+var <-colnames(ff_sub_orig)[-1]
+atr <- c("wave", "respondent", "scale")    
+
+#parallel iteration
+#Tried with a for loop
+for(i in seq_along(var)){
+    for(j in seq_along(atr))
+    {
+        attr(ff_sub_orig[[i+1]], atr[j]) <- as.character(
+        ff_meta_subset %>% 
+            filter(new_name == var[i]) %>% 
+            select(atr[j]))
+    
+    }
+}
+
+#I tried with map2
+#didn't work, maybe because of an assignment inside the function
+# temp <- map2(combination$x, combination$y, ~{
+# attr(ff_sub_orig[[as.character(.x)]], as.character(.y)) <- as.character(
+#     ff_meta_subset %>% 
+#         filter(new_name == as.character(.x)) %>% 
+#         select(.y))
+# }
+# )
+```
 
 ```{r}
 #let's join the meta data to the subset so that we know which scale it comes from
+ff_sub_long <- ff_sub_orig
+ff_sub_long[ff_sub_long < 0] <- NA
 
-ff_sub_long <- ff_sub_orig %>% 
+ff_sub_long <- ff_sub_long %>% 
+    sjlabelled::as_label() %>% 
     pivot_longer(
-        cols = -1,
+        cols = -c(idnum, cm1bsex, ck6ethrace),
         names_to = "response"
     ) %>% 
-    left_join(ff_meta, by = c("response" = "new_name"))
+    left_join(ff_meta_subset, by = c("response" = "new_name"))
 ```
 
-## Plots of Self-Description Questionnnaire Responses Using `nest_by()`
+## Plots of Scale Responses Using `nest_by()` and `walk()`
 
 ```{r}
 #Let's make some example plots
+#drop number from each response in ff_sub_long
+#make a pretty one for this version and then extend to all
+# race <- as.character(unique(ff_sub_long$ck6ethrace))
+# race1 <- gsub("(\\d\\s)(\\w*)(.*)","\\2", race) 
+#almost there, Multi-racial is just Multi, but I'm happy with this solution 
 
+#let's create one visual
+    
+ff_sub_long %>% 
+    mutate(
+        value_n = stringr::str_to_title(gsub("\\d.","", value)),
+        sex = stringr::str_to_title(gsub("\\d.","", cm1bsex)),
+        race = gsub("(\\d\\s)(\\w*)(.*)","\\2", ck6ethrace),
+        race = ifelse(is.na(race),"Missing",ifelse(race == "Multi","Multi-racial", race))
+    ) %>%
+    filter(scale == "Self-Description Questionnaire (SDQ)" & 
+            response == "k5g2a" &
+               !is.na(value_n)) %>%  
+    ggplot(aes(x = value_n)) +
+    geom_bar(aes(fill = race),
+             position = "dodge") +
+    scale_fill_OkabeIto()+
+    facet_wrap(~sex)+
+    theme_minimal(10)+
+    labs(
+        x = "",
+        y = "",
+        title = attributes(ff_sub_orig[["k5g2a"]])$scale,
+        label = "",
+        subtitle = gsub("(\\w*\\.\\s)(.*)","\\2",attributes(ff_sub_orig[["k5g2a"]])$label)
+        )+
+    theme(
+        legend.position = "top",
+        legend.justification="right"
+    )
+```
+
+
+```{r}
+#extending to others
 plots <- ff_sub_long %>% 
-    filter(scale == "Self-Description Questionnaire (SDQ)" & value >= 0) %>%
-    nest_by(varlab) %>% 
-    summarise(
+    mutate(
+        value_n = stringr::str_to_title(gsub("\\d.","", value)),
+        sex = stringr::str_to_title(gsub("\\d.","", cm1bsex)),
+        race = gsub("(\\d\\s)(\\w*)(.*)","\\2", ck6ethrace),
+        race = ifelse(is.na(race),"Missing",ifelse(race == "Multi","Multi-racial", race))
+    ) %>%
+    filter(!is.na(value_n),
+           scale != "") %>% 
+    nest_by(scale, wave, varlab) %>% 
+    mutate(
         plot = list(
-            ggplot(data, aes(x = as.factor(value))) +
-            geom_bar() +
-            labs(
-                title = glue::glue("{varlab}")
-            )   
+                 ggplot(data, aes(x = value_n)) +
+                    geom_bar(aes(fill = race),
+                             position = "dodge") +
+                    scale_fill_OkabeIto()+
+                    facet_wrap(~sex)+
+                    theme_minimal(10)+
+                    labs(
+                        x = "",
+                        y = "",
+                        title = scale,
+                        subtitle = gsub("(\\w*\\.\\s)(.*)","\\2",varlab),
+                        caption = paste0("Data collected in ", wave)
+                        )+
+                    theme(
+                        legend.position = "top",
+                        legend.justification="right"
+                    )  
         )
     )
 
-walk(plots$plot, print)
+#let's randomly see 5 plots
+set.seed(10)
+rand <- sample(1:55, 5)
+
+for(i in seq_along(rand)){
+    print(plots$plot[[rand[i]]])
+}
+#walk(plots$plot, print)
 ```
 
 ## Calculate scores for the internalizing and externalizing subscales
