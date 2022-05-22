@@ -278,11 +278,25 @@ for(i in seq_along(rand)){
 ```{r calculate-subscores}
 #Calculates subscores for internalizing and externalizing behaviors at age 9
 ff_sub <- ff_sub_orig %>% 
-    mutate(int_scores = (k5g2a + k5g2c + k5g2e + k5g2g + 
+    mutate(int_scores = (k5g2a + k5g2c + k5g2e + k5g2g +    # I have a feeling these scores coded at -9 are probably missing - in that case, taking a sum score or average without removing NAs will be problematic and I think is the reason for your comment threads below (ie finding negative values). See below for my attempt at a solution
                              k5g2i + k5g2j + k5g2k + k5g2l) / 8, 
            ext_scores = (k5g2b + k5g2d + k5g2f + 
                              k5g2h + k5g2m + k5g2n) / 6) %>%
     filter(int_scores >= 0, ext_scores >= 0) 
+
+summary(ff_sub %>% select(ext_scores, int_scores))
+
+ff_sub2 <- ff_sub_orig %>% 
+  mutate(across(starts_with("k5"), ~na_if(.x,~ . < 0))) %>% 
+  rowwise() %>% 
+  mutate(int_scores = mean(c(k5g2a, k5g2c, k5g2e, k5g2g, 
+                             k5g2i, k5g2j, k5g2k, k5g2l), na.rm = TRUE), 
+           ext_scores = mean(c(k5g2b, k5g2d, k5g2f, 
+                             k5g2h, k5g2m, k5g2n), na.rm = TRUE)) 
+summary(ff_sub2 %>% select(ext_scores, int_scores))
+
+##okay I read ahead after working on a version of the solution and realize you've come to the same conclusion as me about the scoring...
+# i don't think my solution is the best as i have now abandoned it halfway through. if i knew more about the scale, i'd be able to weigh in more - are some items supposed to be reverse scored? if so, there's the scoreItem function in the psych package - you give it a list of keys that include whether an item is reverse scores, and it will score the scales for you: https://personality-project.org/r/psych/help/score.items.html
 
 #AW: I think that scores lower than 0 should be filtered out first. Filtering out after calculating the mean will make some participant's scores appear lower than they should be because any negative-coded values are being subtracted from other responses. E.g., let's say a participant had -3, -3, 3, 3, 3, 3. The negative responses are getting subtracted from the sum before dividing. After re-reading the instructions for calculating the subscale scores, I don't think the participant should get a subscale score if they have any negatively coded items. "When a participant responds with don’t know, refuse, or missing, to any item on a given scale, their scale score will be missing..."
 
@@ -378,6 +392,9 @@ means_df(ff_sub)
 
 ## Linear Model functions
 ```{r lm-models}
+
+# this section might benefit from some additional explanation - i'm not sure i follow the logic of running these linear models for each person by themselves (although i have a feeling this is something that might become clearer to me as i read on in the script)
+
 ff_sub_lm$idnum <- as.numeric(ff_sub_lm$idnum)
 
 ff_sub_lm$ck6ethrace <- as.numeric(ff_sub_lm$ck6ethrace)
@@ -510,6 +527,7 @@ mods <- function(data, x, y, points = FALSE, ...) {
 }
 
 #AW: Do we want two fitted lines on the graphs? If so, it might be helpful to include a short note about the purpose of the two lines. 
+
 ```
 
 ## Internalizing year 9 x delinquency behaviors in year 15 
@@ -518,7 +536,7 @@ mods <- function(data, x, y, points = FALSE, ...) {
 mods(ff_sub_lm, int_scores, del_beh_15) +
     labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 15",
          x = "Internalizing behavior score",
-         y = "Delinquency behaviors")
+         y = "Delinquency behaviors")  ## it could help to add units to the y axis, or a subtitle explaining. to my eyes this looks like the minimum number of delinquent behaviors is 44...which seems like a lot? but that makes me think i don't understand what measure this is
 ```
 
 ## Externalizing behaviors year 9 x delinquency behaviors in year 15
@@ -809,12 +827,14 @@ scatter1 <- function(df, DV, IV, group) {
 
 #Del. Behavior at 15 by Internalizing scores at 9, grouped by Race
 scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$int_scores, ff_sub_lm1$ck6ethrace)
+#this is a super interesting plot - the different slope in the multi-racial group is really dramatic - i wonder if there are any follow up plots or analyses that can help explain why this is (or if you have an explanation that seems plausible)
 
 #Del. Behavior at 15 by Internalizing scores at 9, grouped by Gender
 scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$int_scores, ff_sub_lm1$cm1bsex)
 
 #Del. Behavior at 15 by Externalizing scores at 9, grouped by Race
 scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$ext_scores, ff_sub_lm1$ck6ethrace)
+#3 these are really not intuitive results. i would expect a much stronger relationship between externalizing scores and delinquent behaviors, do you have any idea why this may be?
 
 #Del. Behavior at 15 by Externalizing scores at 9, grouped by Gender
 scatter1(ff_sub_lm1, ff_sub_lm1$del_beh_15, ff_sub_lm1$ext_scores, ff_sub_lm1$cm1bsex)
