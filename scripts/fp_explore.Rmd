@@ -165,6 +165,7 @@ for(i in seq_along(var)){
 
 #I tried with map2
 #didn't work, maybe because of an assignment inside the function
+
 # temp <- map2(combination$x, combination$y, ~{
 # attr(ff_sub_orig[[as.character(.x)]], as.character(.y)) <- as.character(
 #     ff_meta_subset %>% 
@@ -172,6 +173,14 @@ for(i in seq_along(var)){
 #         select(.y))
 # }
 # )
+
+ temp <- map2(ff_meta_subset$wave, ff_meta_subset$respondent, ff_meta_subset$respondent, ~{
+ attr(ff_sub_orig[[as.character(.x)]], as.character(.y)) <- as.character(
+     ff_meta_subset %>% 
+         filter(new_name == as.character(.x)) %>% 
+         select(.y))
+ }
+)
 ```
 
 ```{r}
