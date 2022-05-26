@@ -277,41 +277,44 @@ for(i in seq_along(rand)){
 ## Calculate scores for the internalizing and externalizing subscales
 ```{r calculate-subscores}
 #Calculates subscores for internalizing and externalizing behaviors at age 9
-ff_sub <- ff_sub_orig %>% 
+
+ff_sub <- ff_sub_orig %>% mutate_all(~ifelse(.x %in% c(-1, -2, -3, -4, -5, -6, -7,-8, -9), NA, .x)) %>% 
+    na.omit()
+
+ff_sub2 <- ff_sub %>% 
     mutate(int_scores = (k5g2a + k5g2c + k5g2e + k5g2g + 
                              k5g2i + k5g2j + k5g2k + k5g2l) / 8, 
            ext_scores = (k5g2b + k5g2d + k5g2f + 
-                             k5g2h + k5g2m + k5g2n) / 6) %>%
-    filter(int_scores >= 0, ext_scores >= 0) 
+                             k5g2h + k5g2m + k5g2n) / 6)
 
 #AW: I think that scores lower than 0 should be filtered out first. Filtering out after calculating the mean will make some participant's scores appear lower than they should be because any negative-coded values are being subtracted from other responses. E.g., let's say a participant had -3, -3, 3, 3, 3, 3. The negative responses are getting subtracted from the sum before dividing. After re-reading the instructions for calculating the subscale scores, I don't think the participant should get a subscale score if they have any negatively coded items. "When a participant responds with don’t know, refuse, or missing, to any item on a given scale, their scale score will be missing..."
 
 #AW: I was thinking something like the code below could work but realized I don't think we want to filter/subset this way. There will be some kids with int. scores but not ext. scores and vice versa. We could (a) create separate dataframes for participants with externalizing subscale scores and participants with internalizing subscale scores or (b) decide we want to restrict the sample to only include participants that had valid scores for all scales. I might also be overthinking this.
 
-ff_sub2 <- ff_sub_orig %>%
-    filter(k5g2b >= 0 &
-           k5g2d >= 0 &
-           k5g2f >= 0 &
-           k5g2h >= 0 &
-           k5g2m >= 0 &
-           k5g2n >= 0
-           ) %>%
-    rowwise() %>%
-    mutate(sdq_externalizing = mean(c(k5g2b,
-                                      k5g2d,
-                                      k5g2f,
-                                      k5g2h,
-                                      k5g2m,
-                                      k5g2n)
-                                    )
-           ) %>% 
-    ungroup()
+# #ff_sub2 <- ff_sub_orig %>%
+#     filter(k5g2b >= 0 &
+#            k5g2d >= 0 &
+#            k5g2f >= 0 &
+#            k5g2h >= 0 &
+#            k5g2m >= 0 &
+#            k5g2n >= 0
+#            ) %>%
+#     rowwise() %>%
+#     mutate(sdq_externalizing = mean(c(k5g2b,
+#                                       k5g2d,
+#                                       k5g2f,
+#                                       k5g2h,
+#                                       k5g2m,
+#                                       k5g2n)
+#                                     )
+#            ) %>% 
+#     ungroup()
 
 #AW: I replicated the externalizing x suspensions/expulsions plot using the # of times expelled/suspended as reported by parents (p6c22), filtering to remove negative values first
 
 p <- ff_sub2 %>% 
     filter(p6c22 >= 0) %>% 
-    ggplot(aes(sdq_externalizing, p6c22)) 
+    ggplot(aes(ext_scores, p6c22)) 
 
 p + geom_smooth(method = "lm",
                     color = "magenta") +
@@ -321,7 +324,7 @@ p + geom_smooth(method = "lm",
 ## Subsetting: select int/ext scores, sex, ethnicity, delinquent behaviors, expulsions/suspensions and filter by valid scores (i.e., less than 0)
 
 ```{r}
-ff_sub_lm <- ff_sub %>% 
+ff_sub_lm <- ff_sub2 %>% 
     rowwise() %>% 
     select(idnum, 
            starts_with("k6d6"), 
@@ -341,7 +344,7 @@ ff_sub_lm <- ff_sub %>%
            del_beh_15_self_rep = sum(c_across(starts_with("k6d61")))) #I added a column here using k6d61 for comparison
 
 #trying out filtering zeroes out first and then joining with ff_sub_lm to compare    
-ff_sub_lm2 <- ff_sub %>% 
+ff_sub_lm2 <- ff_sub2 %>% 
     filter(k6d61a > 0 &
            k6d61b > 0 &
            k6d61c > 0 & 
@@ -392,13 +395,13 @@ lm_mods <- function (vardep, varindep1, varindep2, varindep3, DATA) {
 
 lm_mods("del_beh_15", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
 lm_mods("del_beh_15", "int_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
-lm_mods("del_beh_9", "int_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
-lm_mods("del_beh_9", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
+lm_mods("del_beh_9", "int_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)# p =0.000142
+lm_mods("del_beh_9", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)#p< 2e-16
 
-lm_mods("p5l12g", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
+lm_mods("p5l12g", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm) #p=0.0228
 lm_mods("p5l12g", "int_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
-lm_mods("p6c22", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
-lm_mods("p6c22", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)
+lm_mods("p6c22", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm) #p=0.041071
+lm_mods("p6c22", "ext_scores", "cm1bsex", "ck6ethrace", ff_sub_lm)# p =0.041071
 
 mod_db_int_15 <- ff_sub_lm %>%
     group_by(idnum) %>%
@@ -505,8 +508,7 @@ mods <- function(data, x, y, points = FALSE, ...) {
     p <- ggplot(data, aes({{x}}, {{y}})) 
     p + geom_smooth(method = "lm",
                     color = "magenta", 
-                    ...) +
-        geom_smooth(...) 
+                    ...) 
 }
 
 #AW: Do we want two fitted lines on the graphs? If so, it might be helpful to include a short note about the purpose of the two lines. 
