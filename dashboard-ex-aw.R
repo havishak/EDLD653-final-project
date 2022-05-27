@@ -53,7 +53,8 @@ ethrace <- ff_sub_lm %>%
 
 # the ui
 ui <- dashboardPage(
-    dashboardHeader(title = "Exploring the Fragile Families Dataset"),
+    dashboardHeader(title = "Exploring the Fragile Families Dataset",
+                    titleWidth = 400),
     dashboardSidebar(
         sidebarMenu(
             menuItem("Distributions", tabName = "dist", icon = icon("chart-bar")),
