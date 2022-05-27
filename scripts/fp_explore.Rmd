@@ -21,6 +21,8 @@ library(here)
 library(rio)
 library(janitor)
 library(stringr)
+# remotes::install_github("wilkelab/cowplot")
+# remotes::install_github("clauswilke/colorblindr")
 library(colorblindr)
 library(glue)
 ```
@@ -190,6 +192,8 @@ ff_sub_long <- ff_sub_long %>%
 
 ## Plots of Scale Responses Using `nest_by()` and `walk()`
 
+Anisha: Made x a factor to order responses
+
 ```{r}
 #Let's make some example plots
 #drop number from each response in ff_sub_long
@@ -210,7 +214,8 @@ ff_sub_long %>%
     filter(scale == "Self-Description Questionnaire (SDQ)" & 
             response == "k5g2a" &
                !is.na(value_n)) %>%  
-    ggplot(aes(x = value_n)) +
+    ggplot(aes(x = factor(value_n, levels = c('Not At All True', 'A Little Bit True',
+                                              'Mostly True', 'Very True')))) +
     geom_bar(aes(fill = race),
              position = "dodge") +
     scale_fill_OkabeIto()+
@@ -378,6 +383,7 @@ means_df <- function(df, ...) {
 
 means_df(ff_sub)
 ```
+Anisha: Is this just 2 ways to apply linear models? One with a function, and the other doing each model separately? For the function, you could avoid some redundant code by making vectors of each measure name (e.g., del_beh_15) and of introvert/extrovert (e.g., ext_scores), then using map to apply the lm_mods function for each measure.
 
 ## Linear Model functions
 ```{r lm-models}
