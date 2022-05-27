@@ -25,10 +25,11 @@ library(colorblindr)
 library(glue)
 ```
 
-We are using data from the Fragile Families & Child Well-Being Study (Princeton) for this project. The study is longitudinal, with data collected from child participants, their parents/guardians, and their teachers at multiple time points (e.g., Baseline, Year 9, Year 15). More information about the study can be found at the following links: 
+We are using data from the Fragile Families & Child Well-Being Study (Princeton) for this project. The study is longitudinal, with data collected from child participants, their parents/guardians, and their teachers at multiple time points (e.g., Baseline, Year 9, Year 15). More information about the study can be found [here](https://fragilefamilies.princeton.edu/documentation) and the data can be accessed [here](https://fragilefamilies.princeton.edu/data-and-documentation/public-data-documentation )
 
-- https://fragilefamilies.princeton.edu/data-and-documentation/public-data-documentation 
-- https://fragilefamilies.princeton.edu/documentation
+> The above formatting lets you use hyperlinks in a markdown file - it may be useful for streamlining the writeup if you want to show it to more people :)
+- 
+- 
 
 Our original research questions were: 
 
@@ -97,6 +98,8 @@ ff_meta_subset <- ff_meta %>%
                        wave)
 ```
 
+> Your code for filtering and selecting items within the (meta)dataset makes really good use of the %in%, &, and | operators - very clean, efficient, and easy to read!
+
 Our meta-data subset includes the following information:
 
 a. variable names corresponding to columns in the actual data set
@@ -146,6 +149,8 @@ a. scale
 b. wave 
 c. respondent 
 
+> Manipulating metadata is really difficult for me to wrap my head around and you all do a great job here!
+
 ```{r}
 var <-colnames(ff_sub_orig)[-1]
 atr <- c("wave", "respondent", "scale")    
@@ -173,6 +178,8 @@ for(i in seq_along(var)){
 # }
 # )
 ```
+
+> I'm not 100% sure I know what this code is doing, but if you're having difficulty with assignment inside a loop, I've had great success with the assign() function from base R - it may solve your map2 problem.
 
 ```{r}
 #let's join the meta data to the subset so that we know which scale it comes from
@@ -321,6 +328,8 @@ p + geom_smooth(method = "lm",
     geom_smooth()
 ```
 
+> Bill Revelle's [psych package](http://personality-project.org/r/psych/) has some very user-friendly tools for reverse coding and manipulating scales - it may be worth checking out to help simplify the above code
+
 ## Subsetting: select int/ext scores, sex, ethnicity, delinquent behaviors, expulsions/suspensions and filter by valid scores (i.e., less than 0)
 
 ```{r}
@@ -378,6 +387,8 @@ means_df <- function(df, ...) {
 
 means_df(ff_sub)
 ```
+
+> This is a really well written function!
 
 ## Linear Model functions
 ```{r lm-models}
