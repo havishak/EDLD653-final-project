@@ -163,116 +163,12 @@ for(i in seq_along(var)){
     }
 }
 
-#I tried with map2
-#didn't work, maybe because of an assignment inside the function
-# temp <- map2(combination$x, combination$y, ~{
-# attr(ff_sub_orig[[as.character(.x)]], as.character(.y)) <- as.character(
-#     ff_meta_subset %>% 
-#         filter(new_name == as.character(.x)) %>% 
-#         select(.y))
-# }
-# )
+#information on any variable can be accessed like this:
+#attribute(ff_sub_orig$var_name)
+#attributes(ff_sub_orig$k5g2h)
 ```
 
-```{r}
-#let's join the meta data to the subset so that we know which scale it comes from
-ff_sub_long <- ff_sub_orig
-ff_sub_long[ff_sub_long < 0] <- NA
-
-ff_sub_long <- ff_sub_long %>% 
-    sjlabelled::as_label() %>% 
-    pivot_longer(
-        cols = -c(idnum, cm1bsex, ck6ethrace),
-        names_to = "response"
-    ) %>% 
-    left_join(ff_meta_subset, by = c("response" = "new_name"))
-```
-
-## Plots of Scale Responses Using `nest_by()` and `walk()`
-
-```{r}
-#Let's make some example plots
-#drop number from each response in ff_sub_long
-#make a pretty one for this version and then extend to all
-# race <- as.character(unique(ff_sub_long$ck6ethrace))
-# race1 <- gsub("(\\d\\s)(\\w*)(.*)","\\2", race) 
-#almost there, Multi-racial is just Multi, but I'm happy with this solution 
-
-#let's create one visual
-    
-ff_sub_long %>% 
-    mutate(
-        value_n = stringr::str_to_title(gsub("\\d.","", value)),
-        sex = stringr::str_to_title(gsub("\\d.","", cm1bsex)),
-        race = gsub("(\\d\\s)(\\w*)(.*)","\\2", ck6ethrace),
-        race = ifelse(is.na(race),"Missing",ifelse(race == "Multi","Multi-racial", race))
-    ) %>%
-    filter(scale == "Self-Description Questionnaire (SDQ)" & 
-            response == "k5g2a" &
-               !is.na(value_n)) %>%  
-    ggplot(aes(x = value_n)) +
-    geom_bar(aes(fill = race),
-             position = "dodge") +
-    scale_fill_OkabeIto()+
-    facet_wrap(~sex)+
-    theme_minimal(10)+
-    labs(
-        x = "",
-        y = "",
-        title = attributes(ff_sub_orig[["k5g2a"]])$scale,
-        label = "",
-        subtitle = gsub("(\\w*\\.\\s)(.*)","\\2",attributes(ff_sub_orig[["k5g2a"]])$label)
-        )+
-    theme(
-        legend.position = "top",
-        legend.justification="right"
-    )
-```
-
-
-```{r}
-#extending to others
-plots <- ff_sub_long %>% 
-    mutate(
-        value_n = stringr::str_to_title(gsub("\\d.","", value)),
-        sex = stringr::str_to_title(gsub("\\d.","", cm1bsex)),
-        race = gsub("(\\d\\s)(\\w*)(.*)","\\2", ck6ethrace),
-        race = ifelse(is.na(race),"Missing",ifelse(race == "Multi","Multi-racial", race))
-    ) %>%
-    filter(!is.na(value_n),
-           scale != "") %>% 
-    nest_by(scale, wave, varlab) %>% 
-    mutate(
-        plot = list(
-                 ggplot(data, aes(x = value_n)) +
-                    geom_bar(aes(fill = race),
-                             position = "dodge") +
-                    scale_fill_OkabeIto()+
-                    facet_wrap(~sex)+
-                    theme_minimal(10)+
-                    labs(
-                        x = "",
-                        y = "",
-                        title = scale,
-                        subtitle = gsub("(\\w*\\.\\s)(.*)","\\2",varlab),
-                        caption = paste0("Data collected in ", wave)
-                        )+
-                    theme(
-                        legend.position = "top",
-                        legend.justification="right"
-                    )  
-        )
-    )
-
-#let's randomly see 5 plots
-set.seed(10)
-rand <- sample(1:55, 5)
-
-for(i in seq_along(rand)){
-    print(plots$plot[[rand[i]]])
-}
-#walk(plots$plot, print)
-```
+<!-- changed how plots for items were being created, and moved it folder named R for the app. -->
 
 ## Calculate scores for the internalizing and externalizing subscales
 ```{r calculate-subscores}
