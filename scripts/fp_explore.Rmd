@@ -48,7 +48,7 @@ For this project, we're interested in:
 
 2. Scales:
     a. Self-Description Questionnaire (SDQ) - Information on internalizing and externalizing behaviors at age 9
-    b. Delinquent Behavior Scale at age 9 and age 15
+    b. Delinquent Behavior Scale at age 9 and age 15 [Note: Sometimes you say "age" or "year" in the plots; recommend being consistent so that it is clear this is age and not a grade or year of school - CM}
     c. Aggravation in parenting - collected for Baseline all years
 
 3. Outcomes from questionnaire:
@@ -226,7 +226,7 @@ ff_sub_long %>%
     theme(
         legend.position = "top",
         legend.justification="right"
-    )
+    ) #For these bar graphs it is hard to tell the different groupings apart - maybe put a thick line between them or make several mini plots.
 ```
 
 
@@ -255,7 +255,7 @@ plots <- ff_sub_long %>%
                         y = "",
                         title = scale,
                         subtitle = gsub("(\\w*\\.\\s)(.*)","\\2",varlab),
-                        caption = paste0("Data collected in ", wave)
+                        caption = paste0("Data Collected in ", wave)
                         )+
                     theme(
                         legend.position = "top",
@@ -518,18 +518,18 @@ mods <- function(data, x, y, points = FALSE, ...) {
 
 ```{r lm-model-int-15}
 mods(ff_sub_lm, int_scores, del_beh_15) +
-    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 15",
-         x = "Internalizing behavior score",
-         y = "Delinquency behaviors")
+    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 15",#Same note as for other graphs of this type
+         x = "Internalizing Behavior Score",
+         y = "Delinquency Behaviors")
 ```
 
 ## Externalizing behaviors year 9 x delinquency behaviors in year 15
 
 ```{r lm-model-ext-15}
 mods(ff_sub_lm, ext_scores, del_beh_15) +
-    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 15",
-         x = "Externalizing behavior score",
-         y = "Delinquency behaviors")
+    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 15",#Same note as for other graphs of this type
+         x = "Externalizing Behavior Score",
+         y = "Delinquency Behaviors")
 
 ```
 
@@ -537,18 +537,18 @@ mods(ff_sub_lm, ext_scores, del_beh_15) +
 
 ```{r lm-model-int-9}
 mods(ff_sub_lm, int_scores, del_beh_9) +
-    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 9",
-         x = "Internalizing behavior score",
-         y = "Delinquency behaviors")
+    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 9", #I'm not sure what this title is trying to convey - maybe include a descriptive paragraph. Also, just FYI that the title appears cut off in the graph below. Also, recommend initial cap each main word in title.
+         x = "Internalizing Behavior Score",
+         y = "Delinquency Behaviors")
 ```
 
 ## Externalizing behaviors year 9 x delinquency behaviors in year 15
 
 ```{r lm-model-ext-9}
 mods(ff_sub_lm, ext_scores, del_beh_9) +
-    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 9",
-         x = "Externalizing behavior score",
-         y = "Delinquency behaviors")
+    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 9",#Same note as for previous graphs
+         x = "Externalizing Behavior Score",
+         y = "Delinquency Behaviors")
 
 ```
 
@@ -556,9 +556,9 @@ mods(ff_sub_lm, ext_scores, del_beh_9) +
 
 ```{r lm-model-int-exp-15}
 mods(ff_sub_lm, int_scores, p5l12g) +
-    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 9",
-         x = "Internalizing behavior score",
-         y = "suspensions/expulsions")
+    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 9", #Same note about this title as for the prior graph.
+         x = "Internalizing Behavior Score",
+         y = "Suspensions/Expulsions")
 
 #AW: p5l12g is a binary yes/no variable. It looks like the # of times the participant was suspended/expelled wasn't collected in Year 9, just a yes/no whether they were or were not. 
 ```
@@ -567,9 +567,9 @@ mods(ff_sub_lm, int_scores, p5l12g) +
 
 ```{r lm-model-ext-exp-15}
 mods(ff_sub_lm, ext_scores, p5l12g) +
-    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 9",
-         x = "Externalizing behavior score",
-         y = "suspensions/expulsions")
+    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 9", #Same note as for previous graphs
+         x = "Externalizing Behavior Score",
+         y = "Suspensions/Expulsions")
 
 #AW: p5l12g is a binary yes/no variable. It looks like the # of times the participant was suspended/expelled wasn't collected in Year 9, just a yes/no whether they were or were not. 
 ```
@@ -578,18 +578,18 @@ mods(ff_sub_lm, ext_scores, p5l12g) +
 
 ```{r lm-model-int-exp-9}
 mods(ff_sub_lm, int_scores, p6c22) +
-    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 15",
-         x = "Internalizing behavior score",
-         y = "suspensions/expulsions")
+    labs(title = "Relationship between Internalizing year 9 x suspensions/expulsions in year 15",#Same note as for previous graphs
+         x = "Internalizing Behavior Score",
+         y = "Suspensions/Expulsions")
 ```
 
 ## Externalizing behaviors year 9 x suspensions/expulsions in year 15
 
 ```{r lm-model-ext-exp-9}
 mods(ff_sub_lm, ext_scores, p6c22) +
-    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 15",
-         x = "Externalizing behavior score",
-         y = "suspensions/expulsions")
+    labs(title = "Relationship between Externalizing year 9 x suspensions/expulsions in year 15",#Same note as for previous graphs
+         x = "Externalizing Behavior Score",
+         y = "Suspensions/Expulsions")
 ```
 
 ## Mean Suspensions/Expulsions and Distributions of Subscale Scores and Suspensions/Explusions Using purrr::nest %>% mutate() 
@@ -598,8 +598,8 @@ mods(ff_sub_lm, ext_scores, p6c22) +
 
 cm1bsex = gender of participant, as reported by mother during baseline data collection
 
-- 1 = male
-- 2 = female
+- 1 = Male
+- 2 = Female
 
 ck6ethrace = race/ethnicity of participant, self-reported during Wave 6 / Year 15
 
@@ -622,10 +622,10 @@ ethrace <- ff_sub_lm %>%
                                "4" = "Other", 
                                "5" = "Multiracial"))
 
-# Beginning to play around with nest() %>% mutate. Here, I calculated the avg. suspensions/expulsions reported by primary caregiver for Year 15 for each race/eth category and generated a bar chart w/ displaying the mean suspensions/expulsion by race/ethnicity subgroup
+# Beginning to play around with nest() %>% mutate. Here, I calculated the avg. suspensions/expulsions reported by primary caregiver for Year 15 for each race/ethnicity category and generated a bar chart w/ displaying the mean suspensions/expulsion by race/ethnicity subgroup
 
 by_ethrace <- ethrace %>% 
-    group_by(ck6ethrace) %>%
+    group_by(ck6ethrace) %>% #You might want to change labels to be more clear and add a title
     nest() %>% 
     mutate(
         avg_sus_exp = map_dbl(data, ~mean(.x$p6c22)),
@@ -666,7 +666,7 @@ by_ethrace <- by_ethrace %>%
           title = "Distribution of Age 9 Internalizing Behavior Scores",
           subtitle = glue("{ck6ethrace} Participants"),
           x = "Internalizing Behavior Subscale Score",
-          y = ""
+          y = "" #A label here can help focus your audience
           )
       }
     )
@@ -690,7 +690,7 @@ by_ethrace <- by_ethrace %>%
           title = "Distribution of Age 9 Externalizing Behavior Scores",
           subtitle = glue("{ck6ethrace} Participants"),
           x = "Externalizing Behavior Subscale Score",
-          y = ""
+          y = ""#A label here can help focus your audience
           )
       }
     )
@@ -713,8 +713,8 @@ by_ethrace <- by_ethrace %>%
                 labs(
           title = "Distribution of Age 15 Delinquent Behavior Scores",
           subtitle = glue("{ck6ethrace} Participants"),
-          x = "Delinquent Behavior Total Score",
-          y = ""
+          x = "Delinquent Behavior Total Score",#Recommend defining the term "delinquent for your audience and perhaps consider another term as it can have negative connotations, such as does it mean criminal or late to class?
+          y = ""#A label here can help focus your audience
           )
       }
     )
@@ -739,7 +739,7 @@ by_ethrace <- by_ethrace %>%
           title = "Distribution of Suspensions & Explusions at Age 15",
           subtitle = glue("{ck6ethrace} Participants"),
           x = "Reported Suspensions and Explusions",
-          y = ""
+          y = ""#A label here can help focus your audience
           )
       }
     )
@@ -757,15 +757,15 @@ ff_sub_lm1 <- ff_sub_lm %>%
   select( int_scores, ext_scores, cm1bsex, ck6ethrace, 
           del_beh_9, del_beh_15, p5l12g, p6c22)
 
-ff_sub_lm1$cm1bsex <- factor(ff_sub_lm1$cm1bsex, labels = c("male","female"))
+ff_sub_lm1$cm1bsex <- factor(ff_sub_lm1$cm1bsex, labels = c("Male","Female"))
 
 ff_sub_lm1$ck6ethrace <- as.factor(ff_sub_lm1$ck6ethrace)
 
-ff_sub_lm1$ck6ethrace <- recode (ff_sub_lm1$ck6ethrace, "1" = "white",
-                                                        "2" =  "black",
-                                                        "3" = "hispanic",
-                                                        "4" = "other",
-                                                        "5" = "multi-racial")
+ff_sub_lm1$ck6ethrace <- recode (ff_sub_lm1$ck6ethrace, "1" = "White",
+                                                        "2" = "Black",
+                                                        "3" = "Hispanic",
+                                                        "4" = "Other",
+                                                        "5" = "Multi-racial") #The key title is different font size than the key labels; alos, the y-label could be more clear
 
 #I tried to use the following code with *map* but could not make it work
 
@@ -800,9 +800,9 @@ scatter1 <- function(df, DV, IV, group) {
         panel.grid.minor.x = element_blank())
  
   ifelse(var2 == "ff_sub_lm1$int_scores",
-        p <- p + labs(title = "Delinquent Behavior at 15 predicted by Internalizing scores at 9"),
+        p <- p + labs(title = "Delinquent Behavior at 15 Predicted by Internalizing Scores at 9"),
         ifelse (var2 == "ff_sub_lm1$ext_scores",
-                p <- p + labs(title = "Delinquent Behavior at 15 predicted by Externalizing scores at 9"),
+                p <- p + labs(title = "Delinquent Behavior at 15 Predicted by Externalizing Scores at 9"), #The title has words that are running on top of each other
                 p <- p))
 
  p
@@ -848,7 +848,7 @@ scatter2 <- function(df, group) {
         panel.grid.minor.x = element_blank(),
         title =element_text(size=8))
  
- p + labs (title = paste("Delinquent Behavior at 15 predicted by Internalizing scores at 9", group, sep = ": "))
+ p + labs (title = paste("Delinquent Behavior at 15 Predicted by Internalizing Scores at 9", group, sep = ": "))#Global note - is this age 9 or grade 9, might want to specify
 }
 
 nest_df = ff_sub_lm1 %>% 
