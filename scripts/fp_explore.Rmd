@@ -36,7 +36,7 @@ Our original research questions were:
 2. Which delinquent behaviors are most frequent for internalizing vs. externalizing behaviors? 
 3. Do race/ethnicity, gender, or other demographic characteristics impact this association?
 
-After obtaining the dataset and beginning to work with it, we did not move forward with RQ2. In addition, we decided to explore the relationship between internalizing and externalizing behaviors at age 9 and the number of suspensions/expulsions at age 15. 
+After obtaining the dataset and beginning to work with it, we did not move forward with RQ2. **[Either a) insert more information about why specifically you chose to bring up the research question even though you dropped it or b) consider leaving it out in the intro/adding it to the discussion. - AG]** In addition, we decided to explore the relationship between internalizing and externalizing behaviors at age 9 and the number of suspensions/expulsions at age 15. 
 
 The complete data file has more than 17,000 variables. We'll use the meta-data file, which is like a data dictionary (lists all variables and associated information, such as when it was collected and an explanation of what the variable is), to select the variables of interest, and use the `ff_vars` vector to subset the actual data file.
 
@@ -229,6 +229,7 @@ ff_sub_long %>%
     )
 ```
 
+**[Great plot! It may be a bit distracting to have the missing data included in this plot; perhaps remove it? Also, do you have any information on how "other" is defined? Again, if not meaningful, perhaps you can exclude from this graph or collapse with another category. These choices might make the graph easier to read. -AG]**
 
 ```{r}
 #extending to others
@@ -273,6 +274,8 @@ for(i in seq_along(rand)){
 }
 #walk(plots$plot, print)
 ```
+
+**[Plots 2, 3, and 5 have an x-scale that was partially removed by your regular expression ("never", "or more times", "or times"). Consider just removing the first two characters instead of removing all digits using the substring() function. - AG]**
 
 ## Calculate scores for the internalizing and externalizing subscales
 ```{r calculate-subscores}
@@ -480,7 +483,7 @@ pull_coef <- function(model, coef_name) {
 }
 
 mod_db_ext_15 %>%
-    mutate(intercept = map_dfr(model, pull_coef))
+    mutate(intercept = map_dfr(model, pull_coef)) # I wonder if you can go ahead and pipe these into your code above as to not make this chunk repetitive
 
 mod_db_int_15 %>%
     mutate(intercept = map_dfr(model, pull_coef))
