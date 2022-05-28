@@ -49,7 +49,11 @@ ethrace <- ff_sub_lm %>%
                                "2" = "Black",
                                "3" = "Hispanic/Latino",
                                "4" = "Other", 
-                               "5" = "Multiracial"))
+                               "5" = "Multiracial"),
+           cm1bsex = recode(cm1bsex,
+                            "1" = "Male",
+                            "2"= "Female"))
+
 
 # the ui
 ui <- dashboardPage(
@@ -58,7 +62,8 @@ ui <- dashboardPage(
     dashboardSidebar(
         sidebarMenu(
             menuItem("Distributions", tabName = "dist", icon = icon("chart-bar")),
-            menuItem("Distributions Copy", tabName = "dist2", icon = icon("chart-bar"))
+            menuItem("Distributions Copy", tabName = "dist2", icon = icon("chart-bar")),
+            menuItem("Regression Models", tabName = "reg", icon = icon("chart-bar"))
         )
     ),
     dashboardBody(
@@ -92,49 +97,82 @@ ui <- dashboardPage(
                             inline = TRUE
                         )
                     )                        
-  
+                    
                 ),
                 tabItem(
                     "dist2",
                     box(
                         title = "Distributions Copy",
                         plotOutput("plots2", height = 900)
-                ),
-                box(
-                    radioButtons(
-                        inputId = "var",
-                        label = "Subscale:",
-                        choiceValues = c("int_scores", "ext_scores", 
-                                         "del_beh_15_self_rep", "p6c22"),
-                        choiceNames = c("Internalizing Behaviors Age 9 (copy)", 
-                                        "Externalizing Behaviors Age 9 (copy)", 
-                                        "Delinquent Behaviors Age 15 (copy)",
-                                        "Suspensions and Expulsions Age 15 (copy)"),
-                        select = "int_scores",
-                        inline = TRUE
                     ),
-                    radioButtons(
-                        inputId = "gender",
-                        label = "Gender:",
-                        choiceValues = c("1", "2"),
-                        choiceNames = c("Male (copy)", "Female (copy)"),
-                        select = "1",
-                        inline = TRUE
+                    box(
+                        radioButtons(
+                            inputId = "var",
+                            label = "Subscale:",
+                            choiceValues = c("int_scores", "ext_scores", 
+                                             "del_beh_15_self_rep", "p6c22"),
+                            choiceNames = c("Internalizing Behaviors Age 9 (copy)", 
+                                            "Externalizing Behaviors Age 9 (copy)", 
+                                            "Delinquent Behaviors Age 15 (copy)",
+                                            "Suspensions and Expulsions Age 15 (copy)"),
+                            select = "int_scores",
+                            inline = TRUE
+                        ),
+                        radioButtons(
+                            inputId = "gender",
+                            label = "Gender:",
+                            choiceValues = c("1", "2"),
+                            choiceNames = c("Male (copy)", "Female (copy)"),
+                            select = "1",
+                            inline = TRUE
+                        )
+                        
+                    )                        
+                    
+                )
+                ,tabItem(
+                    "reg",
+                    box(
+                        title = "What is the relationship between externalizing/internalizing Scores at age 9 and Delinquent behaviors or Suspensions/Expulsions at age 15?", 
+                        plotOutput("plots3", height = 400, width = 400),
+                        p("We found that higher externalizing and internalzing behaviors at age 9 strongly predicted higher self-reported delinquency behaviors at age 15. However, externalizing and internalzing behaviors did not predict suspensions and expulsions at age 15")
+                    ),
+     
+                    box(
+                        radioButtons(
+                            inputId = "dv",
+                            label = "Dependent variables:",
+                            choiceValues = c("del_beh_15_self_rep", "p6c22"),
+                            choiceNames = c("Delinquent Behaviors Age 15",
+                                            "Suspensions and Expulsions Age 15 "),
+                            select = "del_beh_15_self_rep",
+                            inline = TRUE
+                        ),
+                        radioButtons(
+                            inputId = "iv",
+                            label = "Independent variable:",
+                            choiceValues = c("int_scores", "ext_scores"),
+                            choiceNames = c("Externalizing behaviors", "Internalizing behaviors"),
+                            select = "int_scores",
+                            inline = TRUE
+                        )
+                        
+                    )          
                     )
-                )                        
-                
+                    
                 )
             )
         )
     )
-)
+
+
 
 
 server <- function(input, output) {
     
     output$plots1 <- renderPlot({
         ethrace %>% 
-            filter(cm1bsex == input$gender) %>% 
+            #filter(cm1bsex == input$gender) %>% 
             ggplot(aes(!!sym(input$var))) +
             geom_histogram(
                 fill = "#56B4E9",
@@ -145,13 +183,33 @@ server <- function(input, output) {
     
     output$plots2 <- renderPlot({
         ethrace %>% 
-            filter(cm1bsex == input$gender) %>% 
+            #filter(cm1bsex == input$gender) %>% 
             ggplot(aes(!!sym(input$var))) +
             geom_histogram(
                 fill = "#56B4E9",
                 color = "white") +
             facet_wrap(~ck6ethrace) +
             theme_minimal(30)
+    })
+
+    
+    
+    output$plots3 <- renderPlot({
+         lm(as.data.frame(ethrace)[,input$dv]~as.data.frame(ethrace)[,input$iv]+as.data.frame(ethrace)[,"cm1bsex"]+as.data.frame(ethrace)[,"ck6ethrace"] )->fit
+        names(fit$model) <- c(input$dv,input$iv,"cm1bsex","ck6ethrace")
+            ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) +
+            stat_smooth(method = "lm", col = "magenta") +
+            labs(caption = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                                 "Intercept =",signif(fit$coef[[1]],5 ),
+                                 " Slope =",signif(fit$coef[[2]], 5),
+                                 " P =",signif(summary(fit)$coef[2,4], 5))) +
+                labs(
+                    x = "Behaviors",
+                    y = "Outcomes",
+                    label = "",
+                ) +
+            facet_wrap(~cm1bsex) +
+            theme_minimal()
     })
 }
 
