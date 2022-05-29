@@ -1,9 +1,9 @@
-Functions (Rebecca):
+# Functions (Rebecca):
  
-Calculate means for coded groups
-Runs all linear models
-Internalizing year 9 x # suspensions/expulsions in year 15
-Externalizing behaviors year 9 x # suspensions/expulsions in year 15
+# Calculate means for coded groups
+# Runs all linear models
+# Internalizing year 9 x # suspensions/expulsions in year 15
+# Externalizing behaviors year 9 x # suspensions/expulsions in year 15
 
 
 
@@ -11,7 +11,6 @@ Externalizing behaviors year 9 x # suspensions/expulsions in year 15
 ff_sub <- ff_sub %>% 
 mutate(int_scores = (k5g2a + k5g2c + k5g2e + k5g2g + k5g2i + k5g2j + k5g2k + k5g2l)/8, ext_scores = (k5g2b + k5g2d + k5g2f + k5g2h + k5g2m + k5g2n)/6) %>%
 filter(int_scores >=0, ext_scores >= 0)
-)
 
 
 ff_sub_lm <- ff_sub %>% 
@@ -36,11 +35,13 @@ ff_sub$idnum <- as.numeric(ff_sub$idnum)
 ff_sub$ck6ethrace <- as.numeric(ff_sub$ck6ethrace)
 
 
-summary(lm(del_beh_15 ~ ext_scores + cm1bsex + ck6ethrace, data = ff_sub))
+summary(lm(del_beh_15 ~ ext_scores + cm1bsex + ck6ethrace, data = ff_sub)) #HK- should data be ff_sub_lm or ff_sub?
 
-summary(lm(del_beh_15 ~ int_scores + cm1bsex + ck6ethrace , data = ff_sub))
+summary(lm(del_beh_15 ~ int_scores + cm1bsex + ck6ethrace , data = ff_sub)) 
 
-mod_db_int <- ff_sub %>%
+
+
+mod_db_int <- ff_sub_lm %>%
     group_by(idnum) %>%
     nest() %>%
     mutate(
@@ -58,6 +59,26 @@ mod_db_ext <- ff_sub %>%
         )
     )
 
+#HK - found that lm formula can be sent as a string. 
+#Thought an alternate would be to form a string formula which can be customized in many ways
+# and then calling the lm function
+# If we only care about the coef., we can also run the pull_coef in this step
+# model_fit <- function(x){
+#     model_str <- paste0("del_beh_15 ~ ", x, " + cm1bsex + ck6ethrace")
+# 
+#     ff_sub_lm %>%
+#         group_by(idnum) %>%
+#         nest() %>%
+#         mutate(
+#             model = map(
+#                 data, ~do.call("lm", list(as.formula(model_str), data = quote(.x)))
+#             ),
+#            intercept = map_dfr(model, pull_coef)
+#         )
+# }
+# 
+# mod_db_int <- model_fit("int_scores")
+# mod_db_ext <- model_fit("ext_scores")
 
 pull_coef <- function(model, coef_name) {
     coef(model)[coef_name]

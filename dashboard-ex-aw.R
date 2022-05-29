@@ -13,7 +13,7 @@ ff_sub_orig <- import(here("data","ff_sub.Rda"))
 
 ff_sub <- ff_sub_orig %>% mutate_all(~ifelse(.x %in% 
                                                  c(-1, -2, -3, -4, -5, 
-                                                   -6, -7,-8, -9), NA, .x)) %>% 
+                                                   -6, -7,-8, -9), NA, .x)) %>% #HK c(-1:-9)
     na.omit()
 
 ff_sub2 <- ff_sub %>% 
@@ -177,10 +177,25 @@ server <- function(input, output) {
             geom_histogram(
                 fill = "#56B4E9",
                 color = "white") +
-            facet_wrap(~ck6ethrace) +
-            theme_minimal(30)
+            facet_wrap(~ck6ethrace) + #HK: alternate-  if you want to facet by two variables, try facet_grid(ek6ethrace ~ cm1bsex)
+            theme_minimal(10)
     })
     
+
+    #HK - geom_ridge might look better
+    #can combine multiracial to other as other doesn't have very few points
+    # ethrace %>%
+    #     ggplot(aes(!!sym("int_scores"))) +
+    #     ggridges::geom_density_ridges(
+    #         aes(y = ck6ethrace,
+    #         fill = ck6ethrace),
+    #         color = "white",
+    #         alpha = 0.6) +
+    #     facet_wrap(~cm1bsex) +
+    #     scale_fill_OkabeIto()+
+    #     scale_x_continuous(breaks = c(0,3))+ #can make the x-axis a bit better by adding more labels
+    #     theme_minimal(10)
+
     output$plots2 <- renderPlot({
         ethrace %>% 
             #filter(cm1bsex == input$gender) %>% 
