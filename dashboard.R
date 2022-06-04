@@ -8,10 +8,10 @@ library(rio)
 library(janitor)
 library(colorblindr)
 library(glue) 
+
 #AW: Note to double-check packages prior to deploying to make sure we only include ones that are needed
 
 # the ui (dashboard components are stored as objects in "ui_components" R file)
-
 ui <- dashboardPage(
     dashboard_header,
     dashboard_sidebar,
@@ -84,10 +84,10 @@ server <- function(input, output, session) {
                                      y = names(fit$model)[1])) +
                 stat_smooth(method = "lm", col = "magenta") + #AW: Could consider selecting a color from the Okabe Ito palette 
                 labs(caption = 
-                     paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
-                           " | Intercept = ",signif(fit$coef[[1]], 5),
+                     paste("Adj. R2 = ",signif(summary(fit)$adj.r.squared, 5), #AW: super minor suggestion - superscript the 2 and italicizing "p" below
+                           " | Intercept = ",signif(fit$coef[[1]], 5), #AW: I tried adding some vertical bars here to separate each stat.
                            " | Slope = ",signif(fit$coef[[2]], 5),
-                           " | P = ",signif(summary(fit)$coef[2, 4], 5))) +
+                           " | p = ",signif(summary(fit)$coef[2, 4], 5))) +
                 labs(
                     x = "Behaviors",
                     y = "Outcomes",
