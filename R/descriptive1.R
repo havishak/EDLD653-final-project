@@ -21,7 +21,7 @@ race_response <- gsub("(\\d\\s)(\\w*)(.*)","\\2", race_response)
 total_response_race <- function(var_choice) {
     
     ff_sub_orig %>%
-        select(var_choice,"ck6ethrace", "cm1bsex") %>%
+        select(var_choice, "ck6ethrace", "cm1bsex") %>%
         filter(if_any(ends_with(var_choice), ~. > 0)) %>%
         sjlabelled::as_label() %>%
         pivot_longer(
@@ -82,15 +82,15 @@ descriptive_plot <- function(df, var_choice, display_choice) {
         geom_col(aes(x = forcats::fct_inorder(val_n),
                      y = prop_category,
                      fill = race),
-                 position = "dodge") +
+                 position = "dodge") + #AW: Could consider adding some transparency (e.g., alpha = .8)
         geom_text(aes(x = forcats::fct_inorder(val_n),
-                      y = prop_category_race,
+                      y = prop_category,
                       group = race,
-                      label = round(prop_category*100,digits = 0)),
+                      label = round(prop_category * 100, digits = 0)),
                   position = position_dodge(width = .9),
                   vjust = 0)+
-        colorblindr::scale_fill_OkabeIto(name = "")+
-        theme_minimal(12)+
+        colorblindr::scale_fill_OkabeIto(name = "") +
+        theme_minimal(12) +
         labs(
             x = "",
             y = "",
@@ -101,17 +101,17 @@ descriptive_plot <- function(df, var_choice, display_choice) {
                             attributes(ff_sub_orig[[var_choice]])$label),
             caption = paste0("Data Collected in ",
                              attributes(ff_sub_orig[[var_choice]])$wave)
-        )+
+        ) +
         theme(
             legend.position = "top",
-            legend.justification="right",
+            legend.justification = "right",
             axis.text.y = element_blank(),
             panel.grid = element_blank()
         )
     
     if(display_choice == "By race and gender"){
         temp <- temp +
-            facet_wrap(~sex)
+            facet_wrap(~sex) #AW: Suggest considering recoding "Boy" / "Girl" to "Male" and "Female"
     }
      temp
     
