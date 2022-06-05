@@ -114,13 +114,13 @@ server <- function(input, output, session) {
                                         scale_y_continuous(expand = c(0,0), 
                                                            breaks = c(35, 40, 45, 50)) +
                                         coord_cartesian(ylim = c(35, 55 )) +
-                                        theme_minimal(15) +
-                                        labs(x = "Internalizing bahavior at 9",
+                                        theme_minimal(15) + 
+                                        labs(x = "Internalizing behavior at 9",
                                              y = "Delinquency at 15") +
                                         scale_color_OkabeIto(name = "Gender") +
                                         theme(panel.grid.minor.y = element_blank(),
                                               panel.grid.minor.x = element_blank(),
-                                              title =element_text(size=8))}))
+                                              axis.text=element_text(size=10))}))
         
         ethrace1$plots[[1]]
     })
@@ -140,14 +140,14 @@ server <- function(input, output, session) {
                                                        breaks = c(35, 40, 45, 50)) +
                                     coord_cartesian(ylim = c(35, 55 )) +
                                     theme_minimal(15) +
-                                    labs(x = "Externalizing bahavior at 9",
+                                    labs(x = "Externalizing behavior at 9",
                                          y = "Delinquency at 15") +
                                     scale_color_OkabeIto(name = "Gender") +
                                     theme(panel.grid.minor.y = element_blank(),
                                           panel.grid.minor.x = element_blank(),
-                                          title =element_text(size=8))))
+                                          axis.text=element_text(size=10))))
         
-        ethrace2$plots[[1]]
+        ethrace2$plots[[1]] 
         
     })
 }
