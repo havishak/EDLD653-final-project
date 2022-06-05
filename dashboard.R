@@ -108,7 +108,7 @@ server <- function(input, output, session) {
             mutate(plots = pmap(list(ck6ethrace, data),
                                 ~{ggplot(..2)+
                                         geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50", 
-                                                   stroke = 0, alpha = .6) +
+                                                   stroke = 0, alpha = .6, size = 2) +
                                         geom_smooth(method = lm, se = FALSE, 
                                                     aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
                                         scale_y_continuous(expand = c(0,0), 
@@ -133,7 +133,7 @@ server <- function(input, output, session) {
             mutate(plots = map2(ck6ethrace, data,
                                 ~ggplot(.y)+
                                     geom_point(aes(x = ext_scores, y = del_beh_15), color = "gray50", 
-                                               stroke = 0, alpha = .6) +
+                                               stroke = 0, alpha = .6, size = 2) +
                                     geom_smooth(method = lm, se = FALSE, 
                                                 aes(x = ext_scores, y = del_beh_15, color = cm1bsex)) +
                                     scale_y_continuous(expand = c(0,0), 
