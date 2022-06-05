@@ -167,9 +167,6 @@ tabitems_plots2 <- tabItem(
 #Scatterplots with fitted regression lines
 tabitems_plots3 <- tabItem(
     "scatterplot",
-    #fluidRow(
-       # box(
-         #   title = "Does the relationship between externalizing or internalizing scores at age 9 and delinquent behaviors at age 15 vary across races?")),
     fluidRow(
         box(
             title = "Does the relationship between externalizing or internalizing scores at age 9 and delinquent behaviors at age 15 vary across races?",
@@ -185,7 +182,10 @@ tabitems_plots3 <- tabItem(
                 inline = TRUE), width = 8)),
     fluidRow(
         box(plotOutput("plots3a"), width = 6),
-        box(plotOutput("plots3b"), width = 6))
+        box(plotOutput("plots3b"), width = 6)),
+    fluidRow(
+        box(
+            "While the effect of both externalizing and internalizing behaviors is relatively similar for Black males and females, the patterns of association between delinquency at the age of 15 and behaviors at the age of 9 differ between genders in other racial groups. For instance, Hispanic/Latino females exhibit the opposite tendency of higher bevavioral scores resulting in less delinquent behavior later in life. White participants diverge from the rest of the population by shwoing an overal negative correlation between the variables: higher externalizing beahviors yield lower delinquency rates for both gender, and higher internalizing scores lead to less delinquency in white women. As for the multiracial participants and representatives of other races, the effect on internalizing behavior differs betwen men and women, with females demonstrating a negative correlation between internalizing behavior and delinquency.", width = 12)),
     )
     
 

@@ -101,56 +101,52 @@ server <- function(input, output, session) {
     })
     
     output$plots3a <- renderPlot({
-        
-            ethrace1 <- ethrace %>% 
-                filter(ck6ethrace == input$race) %>% 
-                group_by(ck6ethrace) %>% 
-                nest() %>% 
-                mutate(plots = pmap(list(ck6ethrace, data),
-                                    ~{ggplot(..2)+
-                                            geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50", 
-                                                       stroke = 0, alpha = .6) +
-                                            geom_smooth(method = lm, se = FALSE, 
-                                                        aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
-                                            scale_y_continuous(expand = c(0,0), 
-                                                               breaks = c(35, 40, 45, 50)) +
-                                            coord_cartesian(ylim = c(35, 55 )) +
-                                            theme_minimal(15) +
-                                            labs(x = "Internalizing bahavior at 9",
-                                                 y = "Delinquency at 15") +
-                                            scale_color_OkabeIto(name = "Gender") +
-                                            theme(plot.title.position = "plot",
-                                                  panel.grid.minor.y = element_blank(),
-                                                  panel.grid.minor.x = element_blank(),
-                                                  title =element_text(size=8))}))
-            ethrace1$plots[[1]]
-        
-    })
-    output$plots3b <- renderPlot({
-        
-        ethrace2 <- ethrace %>% 
+        ethrace1 <- ethrace %>% 
             filter(ck6ethrace == input$race) %>% 
             group_by(ck6ethrace) %>% 
             nest() %>% 
-            #filter(ck6ethrace == "White") %>% 
-            mutate(plots = map2(ck6ethrace, data,
-                                #~{scatter1(..2, del_beh_15, int_scores, cm1bsex)}))
-                                ~ggplot(.y)+
-                                        geom_point(aes(x = ext_scores, y = del_beh_15), color = "gray50", 
+            mutate(plots = pmap(list(ck6ethrace, data),
+                                ~{ggplot(..2)+
+                                        geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50", 
                                                    stroke = 0, alpha = .6) +
                                         geom_smooth(method = lm, se = FALSE, 
-                                                    aes(x = ext_scores, y = del_beh_15, color = cm1bsex)) +
+                                                    aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
                                         scale_y_continuous(expand = c(0,0), 
                                                            breaks = c(35, 40, 45, 50)) +
                                         coord_cartesian(ylim = c(35, 55 )) +
-                                        theme_minimal() +
+                                        theme_minimal(15) +
+                                        labs(x = "Internalizing bahavior at 9",
+                                             y = "Delinquency at 15") +
+                                        scale_color_OkabeIto(name = "Gender") +
+                                        theme(panel.grid.minor.y = element_blank(),
+                                              panel.grid.minor.x = element_blank(),
+                                              title =element_text(size=8))}))
+        
+        ethrace1$plots[[1]]
+    })
+    
+    output$plots3b <- renderPlot({
+        ethrace2 <- ethrace %>%
+            filter(ck6ethrace == input$race) %>% 
+            group_by(ck6ethrace) %>% 
+            nest() %>% 
+            mutate(plots = map2(ck6ethrace, data,
+                                ~ggplot(.y)+
+                                    geom_point(aes(x = ext_scores, y = del_beh_15), color = "gray50", 
+                                               stroke = 0, alpha = .6) +
+                                    geom_smooth(method = lm, se = FALSE, 
+                                                aes(x = ext_scores, y = del_beh_15, color = cm1bsex)) +
+                                    scale_y_continuous(expand = c(0,0), 
+                                                       breaks = c(35, 40, 45, 50)) +
+                                    coord_cartesian(ylim = c(35, 55 )) +
+                                    theme_minimal(15) +
                                     labs(x = "Externalizing bahavior at 9",
                                          y = "Delinquency at 15") +
-                                        scale_color_OkabeIto(name = "Gender") +
-                                        theme(plot.title.position = "plot",
-                                              panel.grid.minor.y = element_blank(),
-                                              panel.grid.minor.x = element_blank(),
-                                              title =element_text(size=8))))
+                                    scale_color_OkabeIto(name = "Gender") +
+                                    theme(panel.grid.minor.y = element_blank(),
+                                          panel.grid.minor.x = element_blank(),
+                                          title =element_text(size=8))))
+        
         ethrace2$plots[[1]]
         
     })
