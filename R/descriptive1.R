@@ -103,7 +103,7 @@ descriptive_plot <- function(df, var_choice, display_choice) {
                              attributes(ff_sub_orig[[var_choice]])$wave)
         ) +
         theme(
-            legend.position = "top",
+            legend.position = "top", #AW: What would you think about bottom-center for the legend?
             legend.justification = "right",
             axis.text.y = element_blank(),
             panel.grid = element_blank()
