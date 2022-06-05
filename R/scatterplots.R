@@ -1,60 +1,47 @@
 library(purrr)
-library(tidyr)
-library(ggplot2)
 library(colorblindr)
 
-ethrace1 <- ethrace %>% 
-  select( int_scores, ext_scores, cm1bsex, ck6ethrace, del_beh_9, del_beh_15)
+ethrace <- ethrace %>% 
+    select( int_scores, ext_scores, cm1bsex, ck6ethrace, del_beh_9, del_beh_15)
 
-ethrace1$cm1bsex <- factor(ethrace1$cm1bsex)
-ethrace1$ck6ethrace <- as.factor(ethrace1$ck6ethrace)
+ethrace$cm1bsex <- factor(ethrace$cm1bsex)
+ethrace$ck6ethrace <- as.factor(ethrace$ck6ethrace)
 
-#Function for a scatterplot with a fitted regression line (Internalizing behavior * delinquency)
-scatter1 <- function(df, group) {
-  p = df %>% 
-    ggplot() +
-    geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50", 
-               stroke = 0, alpha = .6) +
-    geom_smooth(method = lm, se = FALSE, 
-                aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
-    scale_y_continuous(expand = c(0,0), 
-                       breaks = c(35, 40, 45, 50)) +
-    coord_cartesian(ylim = c(35, 55 )) +
-    theme_minimal(15) +
-    scale_color_OkabeIto(name = "Gender") +
-    theme(plot.title.position = "plot",
-          panel.grid.minor.y = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          title =element_text(size=8))
-  
-  p + labs (title = paste("Delinquent Behavior at 15 predicted by Internalizing scores at 9", group, sep = ": "))
+scatter1 <- function( DV, IV, group) {
+    var1 <- deparse(substitute(DV))
+    var2 <- deparse(substitute(IV))
+    
+    p = ethrace %>% 
+        ggplot() +
+        geom_point(aes(x = IV, y = DV), color = "gray50", stroke = 0, alpha = .6) +
+        geom_smooth(method = lm, se = FALSE, 
+                    aes(x = IV, y = DV, color = group)) +
+        scale_y_continuous(expand = c(0,0), 
+                           breaks = c(35, 40, 45, 50)) +
+        coord_cartesian(ylim = c(35, 55 )) +
+        theme_minimal(15) +
+        labs(x = print(var2),
+             y = print(var1)) +
+        theme(plot.title.position = "plot",
+              panel.grid.minor.y = element_blank(),
+              panel.grid.minor.x = element_blank())
+    
+    ifelse(var2 == "ff_sub_lm1$int_scores",
+           p <- p + labs(title = "Delinquent Behavior at 15 predicted by Internalizing scores at 9"),
+           ifelse (var2 == "ff_sub_lm1$ext_scores",
+                   p <- p + labs(title = "Delinquent Behavior at 15 predicted by Externalizing scores at 9"),
+                   p <- p))
+    
+    p
 }
 
-#Function for a scatterplot with a fitted regression line (Externalizing behavior * delinquency)
-scatter2 <- function(df, group) {
-  p = df %>% 
-    ggplot() +
-    geom_point(aes(x = ext_scores, y = del_beh_15), color = "gray50", 
-               stroke = 0, alpha = .6) +
-    geom_smooth(method = lm, se = FALSE, 
-                aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
-    scale_y_continuous(expand = c(0,0), 
-                       breaks = c(35, 40, 45, 50)) +
-    coord_cartesian(ylim = c(35, 55 )) +
-    theme_minimal(15) +
-    scale_color_OkabeIto(name = "Gender") +
-    theme(plot.title.position = "plot",
-          panel.grid.minor.y = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          title =element_text(size=8))
-  
-  p + labs (title = paste("Delinquent Behavior at 15 predicted by Externalizing scores at 9", group, sep = ": "))
-}
+##scatter1(ethrace$int_scores, ethrace$ext_scores, ethrace$cm1bsex)
 
-plotsInt <- map2(nest_df$data, nest_df$ck6ethrace,
-               ~scatter1(.x, .y))
-
-plotsEx <- map2(nest_df$data, nest_df$ck6ethrace,
-               ~scatter2(.x, .y))
+#ethrace %>% 
+    #group_by(ck6ethrace) %>% 
+    #nest() %>% 
+   # filter(ck6ethrace == "White") %>% 
+   # mutate(plots = pmap(list(int_scores, ext_scores, cm1bsex),
+         #~scatter1(..1, ..2, ..3)))
 
 

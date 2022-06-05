@@ -167,22 +167,26 @@ tabitems_plots2 <- tabItem(
 #Scatterplots with fitted regression lines
 tabitems_plots3 <- tabItem(
     "scatterplot",
+    #fluidRow(
+       # box(
+         #   title = "Does the relationship between externalizing or internalizing scores at age 9 and delinquent behaviors at age 15 vary across races?")),
     fluidRow(
         box(
-            title = "Does the relationship between externalizing or internalizing scores at age 9 and delinquent behaviors at age 15 vary across races?")),
-    fluidRow(
-        box("The plots on the previous tab illustrate that higher externalizing and internalizing behaviors at age 9 predict higher self-reported delinquency behaviors at age 15 at statitsically significant levels. However, the strength of this association does not differ by gender. Let's see if the patterns will change if we account for ethnicity/race.", width = 12)),
+            title = "Does the relationship between externalizing or internalizing scores at age 9 and delinquent behaviors at age 15 vary across races?",
+            "The plots on the previous tab illustrate that higher externalizing and internalizing behaviors at age 9 predict higher self-reported delinquency behaviors at age 15 at statitsically significant levels. However, the strength of this association does not differ by gender. Let's see if the patterns will change if we account for ethnicity/race.", width = 12)),
     fluidRow(
         box(
             radioButtons(
                 inputId = "race",
                 label = "Ethnicity/race:",
-                choices = c("Black", "Hispanic/Latino", "Multiracial and Other", "White"),
-                select = "White",
-                inline = TRUE
-        )
+                choiceValues = c("Black", "Hispanic/Latino", "Multiracial and Other", "White"),
+                choiceNames = c("Black", "Hispanic/Latino", "Multiracial and Other", "White"),
+                select = "Black",
+                inline = TRUE), width = 8)),
+    fluidRow(
+        box(plotOutput("plots3a"), width = 6),
+        box(plotOutput("plots3b"), width = 6))
     )
-))
     
 
 #dashboard body
