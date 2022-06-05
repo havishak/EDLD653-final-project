@@ -51,11 +51,6 @@ scatter2 <- function(df, group) {
   p + labs (title = paste("Delinquent Behavior at 15 predicted by Externalizing scores at 9", group, sep = ": "))
 }
 
-
-nest_df = ethrace %>% 
-  group_by(ck6ethrace) %>% 
-  nest()
-
 plotsInt <- map2(nest_df$data, nest_df$ck6ethrace,
                ~scatter1(.x, .y))
 

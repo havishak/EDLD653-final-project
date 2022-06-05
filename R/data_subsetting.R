@@ -2,6 +2,7 @@
 
 library(dplyr)
 
+
 ff_meta <- rio::import(here::here("data","FFMetadata_v09.csv")) %>%
     janitor::clean_names() %>%
     as_tibble()
@@ -111,3 +112,9 @@ ethrace <- ff_sub_lm %>%
 #         avg_sus_exp = map_dbl(data, ~mean(.x$p6c22)),
 #     ) 
 # by_gender$cm1bsex[1]$avg_sus_exp
+
+
+#Nested dataframe for scatterplots
+nest_df = ethrace %>% 
+    group_by(ck6ethrace) %>% 
+    nest()
