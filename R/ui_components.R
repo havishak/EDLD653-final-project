@@ -7,10 +7,14 @@ dashboard_header <- dashboardHeader(title = "Exploring the Fragile Families Data
 
 dashboard_sidebar <- dashboardSidebar(
     sidebarMenu(
-        menuItem("About", tabName = "about", icon = icon("info-circle")),
-        menuItem("Participant Responses", tabName = "descrip", icon = icon("chart-bar")),
-        menuItem("Distributions", tabName = "dist", icon = icon("chart-bar")),
-        menuItem("Regression Models", tabName = "reg", icon = icon("chart-bar")),
+        menuItem("About", 
+                 tabName = "about", icon = icon("info-circle")),
+        menuItem("Participant Responses", 
+                 tabName = "descrip", icon = icon("chart-bar")),
+        menuItem("Distributions", 
+                 tabName = "dist", icon = icon("chart-bar")),
+        menuItem("Regression Models", 
+                 tabName = "reg", icon = icon("chart-bar")),
         menuItem("Source Code", icon = icon("github"), 
                  href = "https://github.com/havishak/EDLD653-final-project.git")
     )
@@ -40,7 +44,8 @@ tabitems_about <- tabItem(
        tags$p("Our research questions were:"),  
        tags$ol(
         tags$li("What is the association between internalizing or externalizing
-                behaviors at age 9 and rates of delinquent behaviors at age 15?"), 
+                behaviors at age 9 and rates of delinquent behaviors at 
+                age 15?"), 
        tags$li("Do race/ethnicity, gender, or other demographic 
                 characteristics impact this association?"))
        , 
@@ -110,9 +115,9 @@ tabitems_plots1 <- tabItem(
             inputId = "var",
             label = "Subscale or Outcome:",
             choices = c("Internalizing Behaviors Age 9" = "int_scores",
-                             "Externalizing Behaviors Age 9" = "ext_scores",
-                             "Delinquent Behaviors Age 15" = "del_beh_15_self_rep",
-                             "Suspensions and Expulsions Age 15" = "p6c22"
+                        "Externalizing Behaviors Age 9" = "ext_scores",
+                        "Delinquent Behaviors Age 15" = "del_beh_15_self_rep",
+                        "Suspensions and Expulsions Age 15" = "p6c22"
                          ),
             select = "int_scores"
         ),
