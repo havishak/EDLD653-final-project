@@ -1,13 +1,78 @@
+# header
+
 dashboard_header <- dashboardHeader(title = "Exploring the Fragile Families Dataset",
                                     titleWidth = 400)
 
+# sidebar
+
 dashboard_sidebar <- dashboardSidebar(
     sidebarMenu(
+        menuItem("About", tabName = "about", icon = icon("info-circle")),
         menuItem("Participant Responses", tabName = "descrip", icon = icon("chart-bar")),
         menuItem("Distributions", tabName = "dist", icon = icon("chart-bar")),
-        menuItem("Regression Models", tabName = "reg", icon = icon("chart-bar"))
+        menuItem("Regression Models", tabName = "reg", icon = icon("chart-bar")),
+        menuItem("Source Code", icon = icon("github"), 
+                 href = "https://github.com/havishak/EDLD653-final-project.git")
     )
 )
+
+# body is at the bottom. Components are stored independently beforehand. 
+
+# the "about" page
+
+tabitems_about <- tabItem(
+    "about",
+    box(title = "About this Project",
+        tags$div(
+            tags$p("This dashboard was created by Ksenia Gordeeva, 
+                    Rebecca Gordon, Havi Khurana, and Amy Warnock for
+                    Spring 2022 EDLD 653 Functional Programming at the 
+                   University of Oregon."), 
+        tags$p("For this project, we used data from the 
+               ", tags$a(
+                   href = "https://fragilefamilies.princeton.edu/documentation", 
+                        "Fragile Families & Child Well-Being Study.")
+               ,),  
+       tags$p("The Fragile Families Study is longitudinal, 
+                with data collected from child participants and their 
+                parents/guardians and teachers at multiple time points 
+                (e.g., Baseline, Year 9, Year 15)."), 
+       tags$p("Our research questions were:"),  
+       tags$ol(
+        tags$li("What is the association between internalizing or externalizing
+                behaviors at age 9 and rates of delinquent behaviors at age 15?"), 
+       tags$li("Do race/ethnicity, gender, or other demographic 
+                characteristics impact this association?"))
+       , 
+       tags$p("For this project, we examined the following variables:"),
+
+       tags$ol(
+           
+           tags$li("Demographic characteristics of participants"),
+           tags$ol(
+               tags$li(type = "a", "Participant's self-reported race/ethnicity 
+                                    at age 15"),
+               tags$li(type = "a", "Mother's report of gender at birth"),
+           ),
+           
+           tags$li("Scales:"),
+           tags$ol(
+                tags$li(type = "a", "Self-Description Questionnaire (SDQ) 
+                                    (internalizing and externalizing 
+                                    behaviors) at age 9"),
+           tags$li(type = "a", "Delinquent Behavior Scale at age 9 and age 15")
+           ),
+           
+           tags$li("Outcomes from questionnaires:"),
+           tags$ol(
+                    tags$li(type = "a", "Number of times suspended or expelled 
+                                        at age 15")
+           )
+        )
+    )
+))
+
+# bar plots of participant responses for scales by demographic variables  
 
 tabitems_plots0 <- tabItem(
     "descrip",
@@ -31,6 +96,8 @@ tabitems_plots0 <- tabItem(
                      )
         )
     )                        
+
+# density plots of subscales and outcomes by race/ethnicity and gender
 
 tabitems_plots1 <- tabItem(
     "dist",
@@ -58,6 +125,8 @@ tabitems_plots1 <- tabItem(
         )
     )                        
 )
+
+# Linear regression graphs between SDQ subscales and outcomes 
 
 tabitems_plots2 <- tabItem(
     "reg",
@@ -88,9 +157,12 @@ tabitems_plots2 <- tabItem(
     )
 )
 
+#dashboard body
+
 dashboard_body <- dashboardBody(
     fluidRow(
         tabItems(
+            tabitems_about,
             tabitems_plots0,
             tabitems_plots1, 
             tabitems_plots2
