@@ -104,12 +104,35 @@ ethrace <- ff_sub_lm %>%
                             "1" = "Male",
                             "2"= "Female"))
 
-# by_gender <-  ethrace %>% 
-#     group_by(cm1bsex) %>%
-#     nest() %>% 
-#     mutate(
-#         avg_sus_exp = map_dbl(data, ~mean(.x$p6c22)),
-#     ) 
-# by_gender$cm1bsex[1]$avg_sus_exp
+by_gender <-  ethrace %>%
+    select(idnum, 
+           ck6ethrace, 
+           cm1bsex, 
+           p6c22, 
+           int_scores, 
+           ext_scores, 
+           del_beh_15_self_rep) %>%
+    pivot_longer(cols = 4:7,
+                 names_to = "scale",
+                 values_to = "score") %>% 
+    group_by(cm1bsex, scale) %>%
+    nest() %>%
+    mutate(
+        mean = map_dbl(data, ~mean(.x$score)) #uses map_dbl
+    )
+
+# AW need to figure out a way to extract means based on gender and scale selection to use as vlines on density ridge plots
+by_gender[1, 4]
+by_gender$mean[[1]]
+
+by_gender2 <-  by_gender %>% 
+    select(cm1bsex, scale, mean)
+
+by_gender2 %>% 
+    filter(cm1bsex == "Male" & scale == "p6c22") %>% 
+    summarize(mean)
+
+
+
 
 
