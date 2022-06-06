@@ -108,7 +108,7 @@ server <- function(input, output, session) {
             nest() %>% 
             mutate(plots = pmap(list(ck6ethrace, data),
                                 ~{ggplot(..2)+
-                                        geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50", 
+                                        geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50",  #AW: I think y vars should be del_beh_15_self_rep. See note in "data_subsetting" line 93
                                                    stroke = 0, alpha = .6, size = 2) +
                                         geom_smooth(method = lm, se = FALSE, 
                                                     aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
