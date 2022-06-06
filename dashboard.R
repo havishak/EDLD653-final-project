@@ -108,13 +108,13 @@ server <- function(input, output, session) {
             nest() %>% 
             mutate(plots = pmap(list(ck6ethrace, data),
                                 ~{ggplot(..2)+
-                                        geom_point(aes(x = int_scores, y = del_beh_15), color = "gray50",  #AW: I think y vars should be del_beh_15_self_rep. See note in "data_subsetting" line 93
+                                        geom_point(aes(x = int_scores, y = del_beh_15_self_rep), color = "gray50",  
                                                    stroke = 0, alpha = .6, size = 2) +
                                         geom_smooth(method = lm, se = FALSE, 
-                                                    aes(x = int_scores, y = del_beh_15, color = cm1bsex)) +
+                                                    aes(x = int_scores, y = del_beh_15_self_rep, color = cm1bsex)) +
                                         scale_y_continuous(expand = c(0,0), 
-                                                           breaks = c(35, 40, 45, 50)) +
-                                        coord_cartesian(ylim = c(35, 55 )) +
+                                                           breaks = c(15, 20, 25)) +
+                                        coord_cartesian(ylim = c(10, 30)) +
                                         theme_minimal(15) + 
                                         labs(x = "Internalizing behavior at 9",
                                              y = "Delinquency at 15") +
@@ -133,13 +133,13 @@ server <- function(input, output, session) {
             nest() %>% 
             mutate(plots = map2(ck6ethrace, data,
                                 ~ggplot(.y)+
-                                    geom_point(aes(x = ext_scores, y = del_beh_15), color = "gray50", 
+                                    geom_point(aes(x = ext_scores, y = del_beh_15_self_rep), color = "gray50", 
                                                stroke = 0, alpha = .6, size = 2) +
                                     geom_smooth(method = lm, se = FALSE, 
-                                                aes(x = ext_scores, y = del_beh_15, color = cm1bsex)) +
+                                                aes(x = ext_scores, y = del_beh_15_self_rep, color = cm1bsex)) +
                                     scale_y_continuous(expand = c(0,0), 
-                                                       breaks = c(35, 40, 45, 50)) +
-                                    coord_cartesian(ylim = c(35, 55 )) +
+                                                       breaks = c(15, 20, 25)) +
+                                    coord_cartesian(ylim = c(10, 30)) +
                                     theme_minimal(15) +
                                     labs(x = "Externalizing behavior at 9",
                                          y = "Delinquency at 15") +
