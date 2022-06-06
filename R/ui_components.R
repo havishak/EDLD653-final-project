@@ -186,7 +186,7 @@ tabitems_plots3 <- tabItem(
     fluidRow(
         box(
             p("While the effect of both externalizing and internalizing behaviors is relatively similar for Black males and females, the patterns of association between delinquency at the age of 15 and behaviors at the age of 9 differ between genders in other racial groups. For instance, Hispanic/Latino females exhibit the opposite tendency of higher bevavioral scores resulting in less delinquent behavior later in life. White participants diverge from the rest of the population by shwoing an overal negative correlation between the variables: higher externalizing beahviors yield lower delinquency rates for both gender, and higher internalizing scores lead to less delinquency in white women. As for the multiracial participants and representatives of other races, the effect on internalizing behavior differs betwen men and women, with females demonstrating a negative correlation between internalizing behavior and delinquency."),
-            p("Thus, the association between internalizing or externalizing behaviors at age 9 and rates of delinquent behaviors at age 15 is more multifactorial in natgure and is impacted by the interaction of demographic characteristics."), width = 10)),
+            p("Thus, the association between internalizing or externalizing behaviors at age 9 and rates of delinquent behaviors at age 15 is more multifactorial in nature and is impacted by the interaction of demographic characteristics."), width = 10)),
     )
     
 
