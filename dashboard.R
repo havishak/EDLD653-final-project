@@ -9,6 +9,7 @@ library(janitor)
 library(colorblindr)
 library(glue) 
 library(purrr)
+library(tidyr)
 
 
 
@@ -122,7 +123,7 @@ server <- function(input, output, session) {
                                               panel.grid.minor.x = element_blank(),
                                               axis.text=element_text(size=10))}))
         
-        ethrace1$plots[[1]]
+        walk(ethrace1$plots, print)
     })
     
     output$plots3b <- renderPlot({
@@ -147,7 +148,7 @@ server <- function(input, output, session) {
                                           panel.grid.minor.x = element_blank(),
                                           axis.text=element_text(size=10))))
         
-        ethrace2$plots[[1]] 
+        walk(ethrace2$plots, print) 
         
     })
 }

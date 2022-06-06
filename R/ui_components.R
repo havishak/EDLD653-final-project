@@ -1,3 +1,7 @@
+# Load packages
+library(shiny)
+library(shinydashboard)
+
 # header
 
 dashboard_header <- dashboardHeader(title = "Exploring the Fragile Families Dataset",

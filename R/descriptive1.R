@@ -35,7 +35,8 @@ total_response_race <- function(var_choice) {
             race = ifelse(race %in% race_response,
                           "Missing",
                           ifelse(race == "Multi","Other",
-                                 race))
+                                 race)),
+            sex = ifelse(sex == "Boy", "Male", "Female")
         ) %>%
         group_by(race) %>%
         mutate(
@@ -82,7 +83,8 @@ descriptive_plot <- function(df, var_choice, display_choice) {
         geom_col(aes(x = forcats::fct_inorder(val_n),
                      y = prop_category,
                      fill = race),
-                 position = "dodge") + #AW: Could consider adding some transparency (e.g., alpha = .8)
+                 position = "dodge",
+                 alpha = 0.7) + #AW: Could consider adding some transparency (e.g., alpha = .8)
         geom_text(aes(x = forcats::fct_inorder(val_n),
                       y = prop_category,
                       group = race,
@@ -103,8 +105,8 @@ descriptive_plot <- function(df, var_choice, display_choice) {
                              attributes(ff_sub_orig[[var_choice]])$wave)
         ) +
         theme(
-            legend.position = "top", #AW: What would you think about bottom-center for the legend?
-            legend.justification = "right",
+            legend.position = "bottom", #AW: What would you think about bottom-center for the legend?
+            legend.justification = "center",
             axis.text.y = element_blank(),
             panel.grid = element_blank()
         )
