@@ -1,6 +1,8 @@
 #data-cleaning
 
 library(dplyr)
+library(tidyr)
+library(purrr)
 
 ff_meta <- rio::import(here::here("data","FFMetadata_v09.csv")) %>%
     janitor::clean_names() %>%
@@ -69,7 +71,7 @@ ff_sub2 <- ff_sub %>%
     mutate(int_scores = (k5g2a + k5g2c + k5g2e + k5g2g + 
                              k5g2i + k5g2j + k5g2k + k5g2l) / 8, 
            ext_scores = (k5g2b + k5g2d + k5g2f + 
-                             k5g2h + k5g2m + k5g2n) / 6)
+                             k5g2h + k5g2m + k5g2n) / 6) 
 
 # Subset to variables of interest
 ff_sub_lm <- ff_sub2 %>% 
