@@ -86,10 +86,10 @@ server <- function(input, output, session) {
 
         ggplot(fit$model, aes_string(x = names(fit$model)[2], 
                                      y = names(fit$model)[1])) +
-                stat_smooth(method = "lm", col = "magenta") + #AW: Could consider selecting a color from the Okabe Ito palette 
+                stat_smooth(method = "lm", color = "orange") + 
                 labs(caption = 
                      paste("Adj. R2 = ",signif(summary(fit)$adj.r.squared, 5), #AW: super minor suggestion - superscript the 2 and italicizing "p" below
-                           " | Intercept = ",signif(fit$coef[[1]], 5), #AW: I tried adding some vertical bars here to separate each stat.
+                           " | Intercept = ",signif(fit$coef[[1]], 5), 
                            " | Slope = ",signif(fit$coef[[2]], 5),
                            " | p = ",signif(summary(fit)$coef[2, 4], 5))) +
                 labs(
