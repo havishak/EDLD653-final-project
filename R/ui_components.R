@@ -89,7 +89,7 @@ tabitems_plots0 <- tabItem(
     "descrip",
     box(
         title = "Participant Responses",
-        plotOutput("plots0", height = 600, width = 600)
+        plotOutput("plots0", height = 400, width = 400)
     ),
     box(
         radioButtons("scale",
@@ -114,7 +114,7 @@ tabitems_plots1 <- tabItem(
     "dist",
     box(
         title = "Distributions",
-        plotOutput("plots1", height = 600, width = 600)
+        plotOutput("plots1", height = 400, width = 400)
     ),
     box(
         selectizeInput(
