@@ -12,9 +12,6 @@ library(purrr)
 library(tidyr)
 
 
-
-#AW: Note to double-check packages prior to deploying to make sure we only include ones that are needed
-
 # the ui (dashboard components are stored as objects in "ui_components" R file)
 ui <- dashboardPage(
     dashboard_header,
@@ -63,11 +60,13 @@ server <- function(input, output, session) {
             scale_x_continuous(limits = c(0, NA)) +
             scale_y_discrete(expand = c(0, 0)) +
             labs(x = "",
-                 y = "") +
-            labs(caption = "Dotted line represents the mean of the selected subscale/outcome for the selected gender.") +
+                 y = "",
+                 caption = paste0("Dotted line represents the mean of the selected subscale/outcome for all ", tolower(input$gender), " participants.")) +
             theme_minimal(15) +
             ggridges::theme_ridges(grid = FALSE) +
-            geom_vline(aes(xintercept = mean(!!sym(input$var))), 
+            geom_vline(aes(xintercept = 
+                               by_gender$mean[by_gender$cm1bsex==input$gender & 
+                                                   by_gender$scale==input$var]), 
                        color = "#29211F",
                        size = 0.5,
                        alpha = .8,
@@ -88,7 +87,7 @@ server <- function(input, output, session) {
                                      y = names(fit$model)[1])) +
                 stat_smooth(method = "lm", color = "orange") + 
                 labs(caption = 
-                     paste("Adj. R2 = ",signif(summary(fit)$adj.r.squared, 5), #AW: super minor suggestion - superscript the 2 and italicizing "p" below
+                     paste("Adj. R2 = ",signif(summary(fit)$adj.r.squared, 5), 
                            " | Intercept = ",signif(fit$coef[[1]], 5), 
                            " | Slope = ",signif(fit$coef[[2]], 5),
                            " | p = ",signif(summary(fit)$coef[2, 4], 5))) +
@@ -107,21 +106,35 @@ server <- function(input, output, session) {
             group_by(ck6ethrace) %>% 
             nest() %>% 
             mutate(plots = pmap(list(ck6ethrace, data),
-                                ~{ggplot(..2)+
-                                        geom_point(aes(x = int_scores, y = del_beh_15_self_rep), color = "gray50",  
-                                                   stroke = 0, alpha = .6, size = 2) +
-                                        geom_smooth(method = lm, se = FALSE, 
-                                                    aes(x = int_scores, y = del_beh_15_self_rep, color = cm1bsex)) +
-                                        scale_y_continuous(expand = c(0,0), 
-                                                           breaks = c(15, 20, 25)) +
-                                        coord_cartesian(ylim = c(10, 30)) +
+                                ~{ggplot(..2) +
+                                        geom_point(aes(x = int_scores, 
+                                                       y = del_beh_15_self_rep), 
+                                                   color = "gray50",  
+                                                   stroke = 0, 
+                                                   alpha = .6, 
+                                                   size = 2) +
+                                        geom_smooth(method = lm, 
+                                                    se = FALSE, 
+                                                    aes(x = int_scores, 
+                                                        y = del_beh_15_self_rep, 
+                                                        color = cm1bsex)) +
+                                        scale_y_continuous(expand = c(0, 
+                                                                      0), 
+                                                           breaks = c(15, 
+                                                                      20, 
+                                                                      25)) +
+                                        coord_cartesian(ylim = c(10, 
+                                                                 30)) +
                                         theme_minimal(15) + 
-                                        labs(x = "Internalizing behavior at 9",
+                                        labs(x = "Internalizing behavior at age 9",
                                              y = "Delinquency at 15") +
                                         scale_color_OkabeIto(name = "Gender") +
-                                        theme(panel.grid.minor.y = element_blank(),
-                                              panel.grid.minor.x = element_blank(),
-                                              axis.text=element_text(size=10))}))
+                                        theme(panel.grid.minor.y = 
+                                                  element_blank(),
+                                              panel.grid.minor.x = 
+                                                  element_blank(),
+                                              axis.text = 
+                                                  element_text(size = 10))}))
         
         walk(ethrace1$plots, print)
     })
@@ -133,20 +146,30 @@ server <- function(input, output, session) {
             nest() %>% 
             mutate(plots = map2(ck6ethrace, data,
                                 ~ggplot(.y)+
-                                    geom_point(aes(x = ext_scores, y = del_beh_15_self_rep), color = "gray50", 
-                                               stroke = 0, alpha = .6, size = 2) +
+                                    geom_point(aes(x = ext_scores, 
+                                                   y = del_beh_15_self_rep), 
+                                               color = "gray50", 
+                                               stroke = 0, 
+                                               alpha = .6, 
+                                               size = 2) +
                                     geom_smooth(method = lm, se = FALSE, 
-                                                aes(x = ext_scores, y = del_beh_15_self_rep, color = cm1bsex)) +
-                                    scale_y_continuous(expand = c(0,0), 
-                                                       breaks = c(15, 20, 25)) +
-                                    coord_cartesian(ylim = c(10, 30)) +
+                                                aes(x = ext_scores, 
+                                                    y = del_beh_15_self_rep, 
+                                                    color = cm1bsex)) +
+                                    scale_y_continuous(expand = c(0, 
+                                                                  0), 
+                                                       breaks = c(15, 
+                                                                  20, 
+                                                                  25)) +
+                                    coord_cartesian(ylim = c(10, 
+                                                             30)) +
                                     theme_minimal(15) +
-                                    labs(x = "Externalizing behavior at 9",
+                                    labs(x = "Externalizing behavior at age 9",
                                          y = "Delinquency at 15") +
                                     scale_color_OkabeIto(name = "Gender") +
                                     theme(panel.grid.minor.y = element_blank(),
                                           panel.grid.minor.x = element_blank(),
-                                          axis.text=element_text(size=10))))
+                                          axis.text=element_text(size = 10))))
         
         walk(ethrace2$plots, print) 
         

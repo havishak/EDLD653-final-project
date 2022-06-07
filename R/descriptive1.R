@@ -84,7 +84,7 @@ descriptive_plot <- function(df, var_choice, display_choice) {
                      y = prop_category,
                      fill = race),
                  position = "dodge",
-                 alpha = 0.7) + #AW: Could consider adding some transparency (e.g., alpha = .8)
+                 alpha = 0.7) + 
         geom_text(aes(x = forcats::fct_inorder(val_n),
                       y = prop_category,
                       group = race,
@@ -105,7 +105,7 @@ descriptive_plot <- function(df, var_choice, display_choice) {
                              attributes(ff_sub_orig[[var_choice]])$wave)
         ) +
         theme(
-            legend.position = "bottom", #AW: What would you think about bottom-center for the legend?
+            legend.position = "bottom",
             legend.justification = "center",
             axis.text.y = element_blank(),
             panel.grid = element_blank()
@@ -113,7 +113,7 @@ descriptive_plot <- function(df, var_choice, display_choice) {
     
     if(display_choice == "By race and gender"){
         temp <- temp +
-            facet_wrap(~sex) #AW: Suggest considering recoding "Boy" / "Girl" to "Male" and "Female"
+            facet_wrap(~sex) 
     }
      temp
     

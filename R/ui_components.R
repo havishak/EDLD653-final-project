@@ -114,7 +114,7 @@ tabitems_plots1 <- tabItem(
     "dist",
     box(
         title = "Distributions",
-        plotOutput("plots1", height = 400, width = 400)
+        plotOutput("plots1", height = 400, width = 600)
     ),
     box(
         selectizeInput(
@@ -180,8 +180,14 @@ tabitems_plots3 <- tabItem(
             radioButtons(
                 inputId = "race",
                 label = "Ethnicity/race:",
-                choiceValues = c("Black", "Hispanic/Latino", "Multiracial and Other", "White"),
-                choiceNames = c("Black", "Hispanic/Latino", "Multiracial and Other", "White"),
+                choiceValues = c("Black", 
+                                 "Hispanic/Latino", 
+                                 "Multiracial and Other", 
+                                 "White"),
+                choiceNames = c("Black", 
+                                "Hispanic/Latino", 
+                                "Multiracial and Other", 
+                                "White"),
                 select = "Black",
                 inline = TRUE), width = 8)),
     fluidRow(
@@ -189,8 +195,9 @@ tabitems_plots3 <- tabItem(
         box(plotOutput("plots3b"), width = 6)),
     fluidRow(
         box(
-            p("While the effect of both externalizing and internalizing behaviors is relatively similar for Black males and females, the patterns of association between delinquency at the age of 15 and behaviors at the age of 9 differ between genders in other racial groups. For instance, Hispanic/Latino females exhibit the opposite tendency of higher bevavioral scores resulting in less delinquent behavior later in life. White participants diverge from the rest of the population by showing an overal negative correlation between the variables: higher internalizing beahviors yield lower delinquency rates for both gender, and higher externalizing scores lead to less delinquency in white women and don't affect the delinquency rates in white men. As for the multiracial participants and representatives of other races, the effect of behaviors differs between men and women, with females demonstrating no correlation between internalizing behavior and delinquency, but a stronger association (comapred to men) between higher externalizing scores and delinquency."),
-            p("Thus, the association between internalizing or externalizing behaviors at age 9 and rates of delinquent behaviors at age 15 is more multifactorial in nature and is impacted by the interaction of demographic characteristics."), width = 10)),
+            p("While the effect of both externalizing and internalizing behaviors is relatively similar for Black males and females, the patterns of association between delinquency at the age of 15 and behaviors at the age of 9 differ between genders in other racial groups. For instance, Hispanic/Latino females exhibit the opposite tendency of higher behavioral scores resulting in less delinquent behavior later in life. White participants diverge from the rest of the population by showing an overall negative correlation between the variables: higher internalizing behaviors yield lower delinquency rates for both genders, and higher externalizing scores lead to less delinquency in White female participants and don't affect the delinquency rates in White male participants As for the multiracial participants and representatives of other races, the effect of behaviors differs between male and female participants, with females demonstrating no correlation between internalizing behavior and delinquency, but a stronger association (compared to men) between higher externalizing scores and delinquency."),
+            p("Thus, the association between internalizing or externalizing behaviors at age 9 and rates of delinquent behaviors at age 15 is more multifactorial in nature and is impacted by the interaction of demographic characteristics."), 
+            width = 10)),
     )
     
 
