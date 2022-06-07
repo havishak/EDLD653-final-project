@@ -92,7 +92,7 @@ descriptive_plot <- function(df, var_choice, display_choice) {
                   position = position_dodge(width = .9),
                   vjust = 0)+
         colorblindr::scale_fill_OkabeIto(name = "") +
-        theme_minimal(12) +
+        theme_minimal(11) +
         labs(
             x = "",
             y = "",
@@ -108,7 +108,8 @@ descriptive_plot <- function(df, var_choice, display_choice) {
             legend.position = "bottom", #AW: What would you think about bottom-center for the legend?
             legend.justification = "center",
             axis.text.y = element_blank(),
-            panel.grid = element_blank()
+            panel.grid = element_blank(),
+            axis.text.x = element_text(angle = 45)
         )
     
     if(display_choice == "By race and gender"){
