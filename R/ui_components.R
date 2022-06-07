@@ -59,7 +59,7 @@ tabitems_about <- tabItem(
 
        tags$ol(
            
-           tags$li("Demographic characteristics of participants"),
+           tags$li("Demographic characteristics of participants:"),
            tags$ol(
                tags$li(type = "a", "Participant's self-reported race/ethnicity 
                                     at age 15"),
