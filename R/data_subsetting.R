@@ -37,9 +37,9 @@ ff_meta_subset <- ff_meta %>%
            wave)
 
 #ff_vars <- ff_meta_subset$new_name
+#We then filtered the big datafile and exported to.
 
-# Load the data and calc subscale scores
-#ff_sub_orig <- import(here("data","ff_sub.Rda")) 
+# Load the data and calculate subscale scores
 ff_sub_orig <- rio::import(here::here("data","ff_sub.Rda")) 
 
 #assigning attributes to variables
@@ -61,9 +61,10 @@ for(i in seq_along(var)){
 }
 
 
+
 # Remove negative values
-ff_sub <- ff_sub_orig %>% mutate_all(~ifelse(.x %in% 
-                                                  c(-1:-9), NA, .x)) %>%
+ff_sub <- ff_sub_orig %>% 
+    mutate_all(~ifelse(.x %in% c(-1:-9), NA, .x)) %>%
     na.omit()
 
 # Calculate age 9 internalizing and externalizing subscale scores
@@ -121,7 +122,8 @@ by_gender <-  ethrace %>%
     group_by(cm1bsex, scale) %>%
     nest() %>%
     mutate(
-        mean = map_dbl(data, ~mean(.x$score)) #uses map_dbl
+        mean = map_dbl(data, ~mean(.x$score)), #uses map_dbl
+        nulls = map_lgl(mean, is.null)
     )
 
 by_gender <-  by_gender %>% 
